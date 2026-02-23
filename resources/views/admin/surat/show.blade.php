@@ -211,7 +211,7 @@
                 $adminActions = $surat->approvals->sortBy('urutan');
             @endphp
 
-            @if($adminActions->isNotEmpty())
+            @if(!($surat->jenis?->is_uploaded) && $adminActions->isNotEmpty())
                 <div class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="p-5 border-b border-slate-200 bg-slate-100/50 flex items-center gap-2">
                         <i class="fas fa-shield-alt text-slate-700"></i>
