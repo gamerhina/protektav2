@@ -692,6 +692,9 @@ class PdfGeneratorService
 
         // Approval data
         if ($surat->approvals->isNotEmpty()) {
+            $student = $surat->mahasiswa;
+            $latestSeminar = $student ? $student->seminars()->latest()->first() : null;
+
             foreach ($surat->approvals as $approval) {
                 $role = $approval->role;
                 
@@ -710,8 +713,26 @@ class PdfGeneratorService
                         $roleCode = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($rawCode)));
                         if (!$roleCode) continue;
 
-                        $data[$roleCode . '_nama'] = $approval->dosen->nama ?? $approval->role_nama ?? '-';
-                        $nipValue = $approval->dosen->nip ?? '-';
+                        // Resolve names and NIPs, with manual seminar field support
+                        $resolvedNama = $approval->dosen->nama ?? null;
+                        $resolvedNip = $approval->dosen->nip ?? null;
+
+                        if (!$resolvedNama && $latestSeminar) {
+                            $lowCode = strtolower($roleCode);
+                            if (str_contains($lowCode, 'p1') || str_contains($lowCode, 'pembimbing_1')) {
+                                $resolvedNama = $latestSeminar->p1_nama;
+                                $resolvedNip = $latestSeminar->p1_nip;
+                            } elseif (str_contains($lowCode, 'p2') || str_contains($lowCode, 'pembimbing_2')) {
+                                $resolvedNama = $latestSeminar->p2_nama;
+                                $resolvedNip = $latestSeminar->p2_nip;
+                            } elseif (str_contains($lowCode, 'pmb') || str_contains($lowCode, 'pembahas')) {
+                                $resolvedNama = $latestSeminar->pembahas_nama;
+                                $resolvedNip = $latestSeminar->pembahas_nip;
+                            }
+                        }
+
+                        $data[$roleCode . '_nama'] = $resolvedNama ?? $approval->role_nama ?? '-';
+                        $nipValue = $resolvedNip ?? '-';
                         
                         // Add NIP prefix if it's a stamp-based letter and NIP is not empty
                         $isStampType = $surat->jenis->is_uploaded ?? false;
@@ -800,10 +821,14 @@ class PdfGeneratorService
             $data['p1_nip'] = $seminar->p1Dosen->nip;
             $data['p1_email'] = $seminar->p1Dosen->email;
         } else {
-            $data['p1_nama'] = $seminar->p1_nama;
-            $data['p1_nip'] = $seminar->p1_nip;
+            $data['p1_nama'] = $seminar->p1_nama ?? '';
+            $data['p1_nip'] = $seminar->p1_nip ?? '';
             $data['p1_email'] = '';
         }
+
+        // Aliases for P1
+        $data['pembimbing_1_nama'] = $data['p1_nama'];
+        $data['pembimbing_1_nip'] = $data['p1_nip'];
 
         $sig1 = $seminar->signatures()
             ->where('jenis_penilai', 'p1')
@@ -814,6 +839,7 @@ class PdfGeneratorService
             $type = pathinfo($path, PATHINFO_EXTENSION);
             $imgData = file_get_contents($path);
             $data['p1_signature'] = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
+            $data['pembimbing_1_signature'] = $data['p1_signature'];
         }
 
         // P2
@@ -822,10 +848,14 @@ class PdfGeneratorService
             $data['p2_nip'] = $seminar->p2Dosen->nip;
             $data['p2_email'] = $seminar->p2Dosen->email;
         } else {
-            $data['p2_nama'] = $seminar->p2_nama;
-            $data['p2_nip'] = $seminar->p2_nip;
+            $data['p2_nama'] = $seminar->p2_nama ?? '';
+            $data['p2_nip'] = $seminar->p2_nip ?? '';
             $data['p2_email'] = '';
         }
+
+        // Aliases for P2
+        $data['pembimbing_2_nama'] = $data['p2_nama'];
+        $data['pembimbing_2_nip'] = $data['p2_nip'];
 
         $sig2 = $seminar->signatures()
             ->where('jenis_penilai', 'p2')
@@ -836,6 +866,7 @@ class PdfGeneratorService
             $type = pathinfo($path, PATHINFO_EXTENSION);
             $imgData = file_get_contents($path);
             $data['p2_signature'] = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
+            $data['pembimbing_2_signature'] = $data['p2_signature'];
         }
 
         // Pembahas
@@ -844,10 +875,14 @@ class PdfGeneratorService
             $data['pmb_nip'] = $seminar->pembahasDosen->nip;
             $data['pmb_email'] = $seminar->pembahasDosen->email;
         } else {
-            $data['pmb_nama'] = $seminar->pembahas_nama;
-            $data['pmb_nip'] = $seminar->pembahas_nip;
+            $data['pmb_nama'] = $seminar->pembahas_nama ?? '';
+            $data['pmb_nip'] = $seminar->pembahas_nip ?? '';
             $data['pmb_email'] = '';
         }
+
+        // Aliases for PMB
+        $data['pembahas_nama'] = $data['pmb_nama'];
+        $data['pembahas_nip'] = $data['pmb_nip'];
 
         $sigP = $seminar->signatures()
             ->where('jenis_penilai', 'pembahas')
@@ -858,6 +893,16 @@ class PdfGeneratorService
             $type = pathinfo($path, PATHINFO_EXTENSION);
             $imgData = file_get_contents($path);
             $data['pmb_signature'] = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
+            $data['pembahas_signature'] = $data['pmb_signature'];
+        }
+
+        // PA (Pembimbing Akademik)
+        if ($mahasiswa && $mahasiswa->pembimbingAkademik) {
+            $data['pa_nama'] = $mahasiswa->pembimbingAkademik->nama;
+            $data['pa_nip'] = $mahasiswa->pembimbingAkademik->nip;
+            $data['pa_email'] = $mahasiswa->pembimbingAkademik->email;
+            $data['pembimbing_akademik_nama'] = $data['pa_nama'];
+            $data['pembimbing_akademik_nip'] = $data['pa_nip'];
         }
 
         // Nilai data
@@ -937,9 +982,9 @@ class PdfGeneratorService
                 $prefix = strtolower($role->kode);
                 $dosen = $role->delegatedDosen;
                 
-                $data[$prefix . '_nama'] = $dosen ? $dosen->nama : '';
-                $data[$prefix . '_nip'] = $dosen ? $dosen->nip : '';
-                $data[$prefix . '_jabatan'] = $role->nama;
+                $data[$prefix . '_nama'] = $data[$prefix . '_nama'] ?? ($dosen ? $dosen->nama : '');
+                $data[$prefix . '_nip'] = $data[$prefix . '_nip'] ?? ($dosen ? $dosen->nip : '');
+                $data[$prefix . '_jabatan'] = $data[$prefix . '_jabatan'] ?? $role->nama;
                 
                 // For global roles, signatures are optional but if they have signed this seminar specifically
                 $sig = $seminar->signatures()->where('jenis_penilai', $prefix)->first();
@@ -954,6 +999,38 @@ class PdfGeneratorService
             }
         } catch (\Exception $e) {
             // Ignore if error
+        }
+
+        // Provide aliases for dynamic roles to match common tag naming conventions
+        $aliases = [
+            'pa' => ['pembimbing_akademik', 'dosen_pa', 'pembimbing_akademik_dinamis'],
+            'p1' => ['pembimbing_1', 'pembimbing1', 'pembimbing_1_dinamis'],
+            'p2' => ['pembimbing_2', 'pembimbing2', 'pembimbing_2_dinamis'],
+            'pmb' => ['pembahas', 'evaluator', 'pembahas_dinamis'],
+        ];
+
+        foreach ($aliases as $short => $mains) {
+            foreach ($mains as $main) {
+                // Try to map main to short
+                if (isset($data[$main . '_nama']) || isset($data[$main . '_nip'])) {
+                    foreach (['nama', 'nip', 'signature', 'jabatan', 'tanggal'] as $suffix) {
+                        if (isset($data[$main . '_' . $suffix]) && !isset($data[$short . '_' . $suffix])) {
+                            $data[$short . '_' . $suffix] = $data[$main . '_' . $suffix];
+                        }
+                    }
+                }
+                
+                // Try to map short to main (reverse)
+                if (isset($data[$short . '_nama']) || isset($data[$short . '_nip'])) {
+                    foreach (['nama', 'nip', 'signature', 'jabatan', 'tanggal'] as $suffix) {
+                        if (isset($data[$short . '_' . $suffix]) && !isset($data[$data[$main . '_' . $suffix] ?? $main . '_' . $suffix])) {
+                             if (!isset($data[$main . '_' . $suffix])) {
+                                $data[$main . '_' . $suffix] = $data[$short . '_' . $suffix];
+                             }
+                        }
+                    }
+                }
+            }
         }
 
         // Dynamic Fields from Seminar Form (berkas_syarat)

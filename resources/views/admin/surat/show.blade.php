@@ -172,19 +172,13 @@
                                         <p class="text-[10px] leading-relaxed">
                                             @if($app->status === 'approved')
                                                 <span class="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">Sudah ditandatangani</span>
-                                                <span class="block text-gray-400 mt-0.5">{{ $app->dosen ? $app->dosen->nama : 'Admin' }}</span>
+                                                <span class="block text-gray-400 mt-0.5">{{ $app->resolved_signer_name }}</span>
                                             @elseif($app->status === 'rejected')
                                                 <span class="text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded">Ditolak</span>
                                             @else
                                                 <span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">Menunggu tanda tangan</span>
                                                 <span class="block text-gray-400 mt-0.5">
-                                                    @if($app->dosen)
-                                                        {{ $app->dosen->nama }}
-                                                    @elseif(in_array(strtolower($app->role_nama ?? ''), ['pembimbing akademik', 'pembimbing 1', 'pembimbing 2', 'pembahas']))
-                                                        <span class="italic text-[10px] text-amber-500 font-bold underline decoration-dotted"><i class="fas fa-magic mr-1"></i> Ditentukan Otomatis</span>
-                                                    @else
-                                                        Admin
-                                                    @endif
+                                                    {{ $app->resolved_signer_name }}
                                                 </span>
                                             @endif
                                         </p>
@@ -315,7 +309,7 @@
                                                 data-height="{{ $app->stamp_height ?: 120 }}"
                                                 data-page="{{ $app->stamp_page ?: 1 }}"
                                                 data-additional="{{ json_encode($app->additional_stamps ?? []) }}">
-                                                TTD {{ $app->urutan }} - {{ $app->role_nama ?: ($app->dosen->nama ?? 'Pejabat') }}
+                                                TTD {{ $app->urutan }} - {{ $app->resolved_signer_name }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -341,7 +335,7 @@
                                     <select id="signer-selector" class="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-xs font-bold text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20">
                                         @foreach($approvals as $app)
                                             <option value="{{ $app->id }}">
-                                                TTD {{ $app->urutan }} - {{ $app->role_nama ?: ($app->dosen->nama ?? 'Pejabat') }}
+                                                TTD {{ $app->urutan }} - {{ $app->resolved_signer_name }}
                                             </option>
                                         @endforeach
                                     </select>

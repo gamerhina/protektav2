@@ -229,12 +229,12 @@
                                         <p class="text-[10px] leading-relaxed">
                                             @if($app->status === 'approved')
                                                 <span class="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">Selesai</span>
-                                                <span class="block text-gray-400 mt-0.5 font-medium">{{ $app->dosen ? $app->dosen->nama : 'Admin' }}</span>
+                                                <span class="block text-gray-400 mt-0.5 font-medium">{{ $app->resolved_signer_name }}</span>
                                             @elseif($app->status === 'rejected')
                                                 <span class="text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded">Ditolak</span>
                                             @else
                                                 <span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">Menunggu</span>
-                                                <span class="block text-gray-400 mt-0.5 font-medium">{{ $app->dosen ? $app->dosen->nama : 'Admin' }}</span>
+                                                <span class="block text-gray-400 mt-0.5 font-medium">{{ $app->resolved_signer_name }}</span>
                                             @endif
                                         </p>
                                     </div>

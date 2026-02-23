@@ -165,4 +165,56 @@ class SuratApproval extends Model
         }
         return null;
     }
+
+    /**
+     * Get the resolved name of the signer, handling dynamic/manual cases
+     */
+    public function getResolvedSignerNameAttribute()
+    {
+        if ($this->dosen) {
+            return $this->dosen->nama;
+        }
+
+        // If no specifically assigned dosen_id, check for dynamic roles
+        $lowRole = strtolower($this->role_nama ?? '');
+        $surat = $this->surat;
+        
+        if (!$surat) return 'Admin';
+
+        // Seminar dynamic fallback
+        if ($surat->mahasiswa_id) {
+            $latestSeminar = $surat->mahasiswa->seminars()->latest()->first();
+            if ($latestSeminar) {
+                if (str_contains($lowRole, 'pembimbing 1')) {
+                    return $latestSeminar->p1_nama ?? 'Pembimbing 1';
+                }
+                if (str_contains($lowRole, 'pembimbing 2')) {
+                    return $latestSeminar->p2_nama ?? 'Pembimbing 2';
+                }
+                if (str_contains($lowRole, 'pembahas')) {
+                    return $latestSeminar->pembahas_nama ?? 'Pembahas';
+                }
+            }
+            
+            // PA fallback
+            if (str_contains($lowRole, 'pembimbing akademik')) {
+                 return $surat->mahasiswa->pembimbingAkademik->nama ?? 'Pembimbing Akademik';
+            }
+        }
+        
+        // Global Role fallback
+        $role = $this->role;
+        if (!$role && $this->role_nama) {
+            $role = SuratRole::where('nama', $this->role_nama)->first();
+            if (!$role) {
+                $role = SuratRole::where('kode', strtoupper($this->role_nama))->first();
+            }
+        }
+        
+        if ($role && $role->delegatedDosen) {
+            return $role->delegatedDosen->nama;
+        }
+
+        return $this->role_nama ?: 'Admin';
+    }
 }
