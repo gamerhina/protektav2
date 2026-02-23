@@ -20,7 +20,7 @@
 /uploads
 /storage/*.key
 /storage/pail
-/vendor
+#/vendor
 .artifacts/
 .gemini/
 *.sql
