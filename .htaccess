@@ -1,0 +1,55 @@
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    # ===============================
+    # 1. BLOKIR FILE ENV SAJA (AMAN)
+    # ===============================
+    <Files ".env">
+        Require all denied
+    </Files>
+
+    <Files ".env.example">
+        Require all denied
+    </Files>
+
+    # ===============================
+    # 2. HANDLE AUTH & XSRF (LOGIN)
+    # ===============================
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    RewriteCond %{HTTP:x-xsrf-token} .
+    RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
+
+    # ===============================
+    # 3. TRAILING SLASH (AMAN)
+    # ===============================
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # ===============================
+    # 4. LARAVEL FRONT CONTROLLER
+    # ===============================
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# ===============================
+# 5. BLOK FILE SENSITIF & BACKUP
+# ===============================
+
+# Blok file config penting
+<FilesMatch "(artisan|composer\.json|composer\.lock|package\.json|webpack\.mix\.js)">
+    Require all denied
+</FilesMatch>
+
+# Blok file backup, log, & database
+<FilesMatch "\.(log|bak|sql|zip|tar|gz)$">
+    Require all denied
+</FilesMatch>
