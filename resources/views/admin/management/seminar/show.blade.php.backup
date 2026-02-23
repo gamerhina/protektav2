@@ -1,0 +1,309 @@
+@extends('layouts.app')
+
+@section('title', 'Seminar Details')
+
+@section('content')
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">Seminar Details</h1>
+            <div class="flex space-x-2">
+                <a href="{{ route('admin.seminar.edit', $seminar->id) }}" class="px-4 py-2 bg-yellow-500 text-white rounded-md hover:bg-yellow-600">
+                    Edit
+                </a>
+                <a href="{{ route('admin.seminar.index') }}" class="btn-pill btn-pill-secondary">
+                    Back to List
+                </a>
+            </div>
+        </div>
+
+        @if(session('success'))
+            <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ session('success') }}</span>
+            </div>
+        @endif
+
+        <div class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">No. Surat</h3>
+                    <p class="mt-1 text-gray-900">{{ $seminar->no_surat }}</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Status</h3>
+                    <p class="mt-1 text-gray-900">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                            @if($seminar->status == 'diajukan') bg-yellow-100 text-yellow-800
+                            @elseif($seminar->status == 'disetujui') bg-blue-100 text-blue-800
+                            @elseif($seminar->status == 'ditolak') bg-red-100 text-red-800
+                            @elseif($seminar->status == 'selesai') bg-green-100 text-green-800
+                            @endif">
+                            {{ ucfirst($seminar->status) }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-medium text-gray-500">Judul</h3>
+                <div class="mt-1 text-gray-900 whitespace-pre-wrap">{!! $seminar->judul !!}</div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Tanggal</h3>
+                    <p class="mt-1 text-gray-900">{{ $seminar->tanggal ? $seminar->tanggal->format('d M Y') : 'N/A' }}</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Waktu</h3>
+                    <p class="mt-1 text-gray-900">{{ $seminar->waktu_mulai }} - {{ $seminar->waktu_selesai }}</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Lokasi</h3>
+                    <p class="mt-1 text-gray-900">{{ $seminar->lokasi }}</p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-medium text-gray-500">Jenis Seminar</h3>
+                <p class="mt-1 text-gray-900">{{ $seminar->seminarJenis->nama ?? 'N/A' }}</p>
+            </div>
+
+            <div>
+                <h3 class="text-lg font-medium text-gray-500">Mahasiswa</h3>
+                <p class="mt-1 text-gray-900">{{ $seminar->mahasiswa->nama ?? 'N/A' }} ({{ $seminar->mahasiswa->npm ?? 'N/A' }})</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Pembimbing 1</h3>
+                    <p class="mt-1 text-gray-900">{{ $seminar->p1Dosen->nama ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Pembimbing 2</h3>
+                    <p class="mt-1 text-gray-900">{{ $seminar->p2Dosen->nama ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Pembahas</h3>
+                    <p class="mt-1 text-gray-900">{{ $seminar->pembahasDosen->nama ?? 'N/A' }}</p>
+                </div>
+            </div>
+
+            @if($seminar->berkas_syarat && is_array($seminar->berkas_syarat) && count($seminar->berkas_syarat) > 0)
+                <div>
+                    <h3 class="text-lg font-medium text-gray-500">Berkas Syarat</h3>
+                    <div class="mt-2">
+                        @foreach($seminar->berkas_syarat as $berkas)
+                            <div class="flex items-center py-1">
+                                <i class="fas fa-file-pdf text-red-500 mr-2"></i>
+                                <a href="#" onclick="openPdf('{{ $berkas }}')" class="text-blue-600 hover:underline hover:text-blue-800">
+                                    {{ $berkas }}
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Nilai Details -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-medium text-gray-500">Nilai Seminar</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    @php
+                        $nilaiP1 = $seminar->nilai->firstWhere('jenis_penilai', 'p1');
+                        $nilaiP2 = $seminar->nilai->firstWhere('jenis_penilai', 'p2');
+                        $nilaiPembahas = $seminar->nilai->firstWhere('jenis_penilai', 'pembahas');
+
+                        $isUjianSkripsi = $seminar->seminarJenis && strcasecmp($seminar->seminarJenis->nama, 'Ujian Skripsi') === 0;
+
+                        $p1ComponentsLabels = [
+                            'penguasaan_materi' => 'Nilai Penguasaan Materi P1',
+                            'penguasaan_metodologi' => 'Nilai Penguasaan Metodologi',
+                            'kemampuan_argumentasi' => 'Nilai Kemampuan Argumentasi P1',
+                            'orisinilitas' => 'Nilai Orisinilitas P1',
+                            'kebakuan' => 'Nilai Kebakuan P1',
+                            'proses_penyusunan' => 'Nilai Proses Penyusunan Skripsi P1',
+                        ];
+
+                        $p2ComponentsLabels = [
+                            'penguasaan_materi' => 'Nilai Penguasaan Materi P2',
+                            'penguasaan_metodologi' => 'Nilai Penguasaan Metodologi',
+                            'kemampuan_argumentasi' => 'Nilai Kemampuan Argumentasi P2',
+                            'orisinilitas' => 'Nilai Orisinilitas P2',
+                            'kebakuan' => 'Nilai Kebakuan P2',
+                            'proses_penyusunan' => 'Nilai Proses Penyusunan Skripsi P2',
+                        ];
+
+                        $pembahasComponentsLabels = [
+                            'penguasaan_materi' => 'Nilai Penguasaan Materi PMB',
+                            'penguasaan_metodologi' => 'Nilai Penguasaan Metodologi PMB',
+                            'kemampuan_argumentasi' => 'Nilai Kemampuan Argumentasi PMB',
+                            'orisinilitas' => 'Nilai Orisinilitas PMB',
+                            'kebakuan' => 'Nilai Kebakuan PMB',
+                        ];
+                    @endphp
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-700">Pembimbing 1</h4>
+                        @if($nilaiP1)
+                            <p class="mt-2 text-gray-900"><strong>Nilai: </strong>{{ $nilaiP1->nilai_angka }}</p>
+                            @if($nilaiP1->catatan)
+                                <p class="mt-1 text-gray-600"><strong>Catatan: </strong>{{ $nilaiP1->catatan }}</p>
+                            @endif
+                            @if($isUjianSkripsi && $nilaiP1->komponen_nilai)
+                                <div class="mt-3 space-y-2">
+                                    @foreach($p1ComponentsLabels as $componentKey => $componentLabel)
+                                        @if(isset($nilaiP1->komponen_nilai[$componentKey]))
+                                            <div class="flex justify-between text-sm text-gray-600">
+                                                <span>{{ $componentLabel }}</span>
+                                                <span class="font-medium text-gray-800">{{ $nilaiP1->komponen_nilai[$componentKey] }}</span>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                        @else
+                            <p class="text-gray-500">Belum dinilai</p>
+                        @endif
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-700">Pembimbing 2</h4>
+                        @if($nilaiP2)
+                            <p class="mt-2 text-gray-900"><strong>Nilai: </strong>{{ $nilaiP2->nilai_angka }}</p>
+                            @if($nilaiP2->catatan)
+                                <p class="mt-1 text-gray-600"><strong>Catatan: </strong>{{ $nilaiP2->catatan }}</p>
+                            @endif
+                            @if($isUjianSkripsi && $nilaiP2->komponen_nilai)
+                                <div class="mt-3 space-y-2">
+                                    @foreach($p2ComponentsLabels as $componentKey => $componentLabel)
+                                        @if(isset($nilaiP2->komponen_nilai[$componentKey]))
+                                            <div class="flex justify-between text-sm text-gray-600">
+                                                <span>{{ $componentLabel }}</span>
+                                                <span class="font-medium text-gray-800">{{ $nilaiP2->komponen_nilai[$componentKey] }}</span>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                        @else
+                            <p class="text-gray-500">Belum dinilai</p>
+                        @endif
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-700">Pembahas</h4>
+                        @if($nilaiPembahas)
+                            <p class="mt-2 text-gray-900"><strong>Nilai: </strong>{{ $nilaiPembahas->nilai_angka }}</p>
+                            @if($nilaiPembahas->catatan)
+                                <p class="mt-1 text-gray-600"><strong>Catatan: </strong>{{ $nilaiPembahas->catatan }}</p>
+                            @endif
+                            @if($isUjianSkripsi && $nilaiPembahas->komponen_nilai)
+                                <div class="mt-3 space-y-2">
+                                    @foreach($pembahasComponentsLabels as $componentKey => $componentLabel)
+                                        @if(isset($nilaiPembahas->komponen_nilai[$componentKey]))
+                                            <div class="flex justify-between text-sm text-gray-600">
+                                                <span>{{ $componentLabel }}</span>
+                                                <span class="font-medium text-gray-800">{{ $nilaiPembahas->komponen_nilai[$componentKey] }}</span>
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+                        @else
+                            <p class="text-gray-500">Belum dinilai</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Signature Details -->
+            <div class="mt-6 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-medium text-gray-500">Tanda Tangan Elektronik</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    @php
+                        $signatures = $seminar->signatures->keyBy('jenis_penilai');
+                        $p1Signature = $signatures['p1'] ?? null;
+                        $p2Signature = $signatures['p2'] ?? null;
+                        $pembahasSignature = $signatures['pembahas'] ?? null;
+                    @endphp
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-700">Pembimbing 1</h4>
+                        @if($p1Signature)
+                            <div class="mt-2">
+                                <img src="{{ route('admin.seminar.files.show', ['path' => $p1Signature->tanda_tangan]) }}" alt="Tanda Tangan P1" class="max-w-full h-auto border border-gray-200">
+                                <p class="mt-1 text-sm text-gray-600">Tanggal: {{ $p1Signature->tanggal_ttd ? $p1Signature->tanggal_ttd->format('d M Y') : 'N/A' }}</p>
+                            </div>
+                        @else
+                            <p class="text-gray-500">Belum ditandatangani</p>
+                        @endif
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-700">Pembimbing 2</h4>
+                        @if($p2Signature)
+                            <div class="mt-2">
+                                <img src="{{ route('admin.seminar.files.show', ['path' => $p2Signature->tanda_tangan]) }}" alt="Tanda Tangan P2" class="max-w-full h-auto border border-gray-200">
+                                <p class="mt-1 text-sm text-gray-600">Tanggal: {{ $p2Signature->tanggal_ttd ? $p2Signature->tanggal_ttd->format('d M Y') : 'N/A' }}</p>
+                            </div>
+                        @else
+                            <p class="text-gray-500">Belum ditandatangani</p>
+                        @endif
+                    </div>
+
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="font-medium text-gray-700">Pembahas</h4>
+                        @if($pembahasSignature)
+                            <div class="mt-2">
+                                <img src="{{ route('admin.seminar.files.show', ['path' => $pembahasSignature->tanda_tangan]) }}" alt="Tanda Tangan Pembahas" class="max-w-full h-auto border border-gray-200">
+                                <p class="mt-1 text-sm text-gray-600">Tanggal: {{ $pembahasSignature->tanggal_ttd ? $pembahasSignature->tanggal_ttd->format('d M Y') : 'N/A' }}</p>
+                            </div>
+                        @else
+                            <p class="text-gray-500">Belum ditandatangani</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-200">
+            <div class="flex flex-wrap gap-4">
+                <form action="{{ route('admin.seminar.send-email', $seminar->id) }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="type" value="invitation">
+                    <input type="hidden" name="recipients[]" value="mahasiswa">
+                    <input type="hidden" name="recipients[]" value="p1">
+                    <input type="hidden" name="recipients[]" value="p2">
+                    <input type="hidden" name="recipients[]" value="pembahas">
+                    <button type="submit" class="btn-pill btn-pill-primary" onclick="return confirm('Kirim undangan seminar kepada semua pihak?')">
+                        <i class="fas fa-envelope mr-2"></i>Kirim Email Undangan
+                    </button>
+                </form>
+
+                <form action="{{ route('admin.seminar.send-email', $seminar->id) }}" method="POST" class="inline">
+                    @csrf
+                    <input type="hidden" name="type" value="grade">
+                    <input type="hidden" name="recipients[]" value="mahasiswa">
+                    <input type="hidden" name="recipients[]" value="p1">
+                    <input type="hidden" name="recipients[]" value="p2">
+                    <input type="hidden" name="recipients[]" value="pembahas">
+                    <button type="submit" class="btn-pill btn-pill-success" onclick="return confirm('Kirim pengumuman nilai kepada semua pihak?')">
+                        <i class="fas fa-graduation-cap mr-2"></i>Kirim Email Nilai
+                    </button>
+                </form>
+            </div>
+
+            <div class="mt-4">
+                <form action="{{ route('admin.seminar.destroy', $seminar->id) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus seminar ini?')">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn-pill btn-pill-danger">
+                        Delete Seminar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
