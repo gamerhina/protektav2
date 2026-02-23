@@ -309,6 +309,21 @@
                 <div class="min-w-0">
                     <h3 class="font-bold text-gray-900 leading-tight mb-0.5 truncate">Editor Penempatan Tanda Tangan</h3>
                     <p class="text-[9px] md:text-[10px] text-gray-400 uppercase tracking-widest font-bold truncate">Tekan "Aktifkan Editor" untuk mulai menempatkan stempel</p>
+                    
+                    @php
+                        $myPendingApprovals = $approvals->filter(function($app) use ($isAdmin) {
+                            return !$app->isApproved() && ($isAdmin || $app->dosen_id == Auth::guard('dosen')->id());
+                        });
+                    @endphp
+
+                    @if($myPendingApprovals->count() > 1)
+                    <div class="mt-2 flex items-center gap-2 px-2 py-1 bg-amber-50 border border-amber-100 rounded-lg">
+                        <i class="fas fa-info-circle text-amber-600 text-[10px]"></i>
+                        <p class="text-[10px] font-bold text-amber-700">
+                            Sistem mendeteksi Anda memiliki {{ $myPendingApprovals->count() }} peran dalam surat ini. Anda dapat menempatkan semua QR sekaligus.
+                        </p>
+                    </div>
+                    @endif
                 </div>
             </div>
             
@@ -553,6 +568,7 @@
             $allApprovalsData = $approvals->map(function($app) {
                 return [
                     'approval_id' => $app->id,
+                    'dosen_id' => $app->dosen_id,
                     'urutan' => $app->urutan,
                     'role_nama' => $app->role_nama ?: ($app->role->nama ?? 'Pejabat'),
                     'x' => $app->stamp_x ?: 50,
@@ -567,12 +583,20 @@
         @endphp
         const allApprovals = @json($allApprovalsData);
 
+        const currentDosenId = @json(Auth::guard('dosen')->id() ?: (Auth::guard('admin')->check() ? null : Auth::id()));
+        const isAdmin = @json($isAdmin);
+
         // Convert to stamp instances - each can exist on multiple pages
         allApprovals.forEach(app => {
-            // Create QR stamp instance if already stamped OR if it's the current level 
-            // (We want the ghost to be visible for the current level even if not yet finalized)
+            // Create QR stamp instance if:
+            // 1. Already stamped
+            // 2. Is the specific level we opened
+            // 3. User is an admin (shows all)
+            // 4. Current user is the assigned dosen for this role
             const isTargetLevel = (app.approval_id == {{ $approval->id }});
-            if (app.is_stamped || isTargetLevel) {
+            const isMyLevel = isAdmin || (currentDosenId && app.dosen_id == currentDosenId);
+            
+            if (app.is_stamped || isTargetLevel || isMyLevel) {
                 stamps.push({
                     id: 'qr_' + app.approval_id + '_p' + app.page,
                     approval_id: app.approval_id,
@@ -656,15 +680,15 @@
                 if (stamp.page !== pageNum) return;
 
                 const isCurrentLevel = (stamp.approval_id == currentLevelId);
-                // Non-admins should still see other people's stamps if they are already placed (to avoid overlap)
-                if (!isAdminUser && !isCurrentLevel && !stamp.is_stamped) return;
+                const isMyLevel = isAdmin || (currentDosenId && stamp.dosen_id == currentDosenId);
+                const canEditThis = isCurrentLevel || isMyLevel;
 
                 const el = document.createElement('div');
                 el.id = stamp.id;
 
                 // Class calculation
                 let baseClass = `absolute z-40 select-none`;
-                if (isCurrentLevel) {
+                if (canEditThis) {
                     baseClass += ` cursor-move group hover:ring-1 hover:ring-blue-300 pointer-events-auto`;
                     if (activeItem && activeItem.id === stamp.id) baseClass += ' ring-2 ring-blue-500 z-50';
                 } else {
@@ -691,7 +715,7 @@
                     el.style.padding = '0';
                     el.style.border = 'none';
                     
-                    if (dragEnabled && isCurrentLevel) {
+                    if (dragEnabled && canEditThis) {
                         el.style.outline = '2px dashed #3b82f6';
                         el.style.outlineOffset = '-2px';
                     }
@@ -699,15 +723,15 @@
                     el.className += ' bg-blue-100/60 flex items-center justify-center border border-blue-300/50';
                     el.innerHTML = `
                         <i class="fas fa-qrcode text-4xl text-blue-600 opacity-60"></i>
-                        <div class="text-[8px] font-bold text-white ${ isCurrentLevel ? 'bg-blue-600' : 'bg-gray-500' } px-2 py-0.5 shadow-sm absolute top-0 left-0 w-full truncate leading-none">
-                            ${ isCurrentLevel ? '' : '🔒 ' }TTD ${stamp.urutan} - ${stamp.role_nama}
+                        <div class="text-[8px] font-bold text-white ${ canEditThis ? 'bg-blue-600' : 'bg-gray-500' } px-2 py-0.5 shadow-sm absolute top-0 left-0 w-full truncate leading-none">
+                            ${ canEditThis ? '' : '🔒 ' }TTD ${stamp.urutan} - ${stamp.role_nama}
                         </div>
-                        <div class="resize-handle absolute -bottom-2 -right-2 w-5 h-5 bg-blue-600 rounded cursor-nwse-resize shadow ${dragEnabled && isCurrentLevel ? '' : 'hidden'}"></div>
+                        <div class="resize-handle absolute -bottom-2 -right-2 w-5 h-5 bg-blue-600 rounded cursor-nwse-resize shadow ${dragEnabled && canEditThis ? '' : 'hidden'}"></div>
                     `;
                 } else {
                     el.style.padding = '0';
                     el.style.boxSizing = 'border-box';
-                    if (dragEnabled && isCurrentLevel) {
+                    if (dragEnabled && canEditThis) {
                         el.style.outline = '1px dashed #3b82f6';
                         el.style.outlineOffset = '2px';
                         el.style.backgroundColor = 'rgba(59, 130, 246, 0.05)';
@@ -730,7 +754,7 @@
                 }
 
                 if (dragEnabled) {
-                    if (isCurrentLevel) {
+                    if (canEditThis) {
                         attachDragEvents(el, stamp);
                         el.onclick = (e) => { e.stopPropagation(); selectItem(stamp.id); };
                     } else {
@@ -757,6 +781,13 @@
 
         function selectItem(id) {
             activeItem = stamps.find(s => s.id === id);
+            
+            // Sync level selector if needed
+            const select = document.getElementById('select-approval-level');
+            if (select && activeItem && select.value != activeItem.approval_id) {
+                select.value = activeItem.approval_id;
+            }
+
             Array.from(stampsContainer.children).forEach(c => c.id === id ? c.classList.add('ring-2', 'ring-blue-500', 'z-50') : c.classList.remove('ring-2', 'ring-blue-500', 'z-50'));
             itemProperties.classList.remove('hidden');
             

@@ -70,20 +70,116 @@
                 </div>
             </div>
 
-            {{-- Document Preview --}}
+            {{-- Dynamic Data & Persyaratan --}}
             <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <i class="fas fa-file-pdf text-indigo-600"></i>
-                         Pratinjau Dokumen
-                    </h2>
-                     <a href="{{ route('admin.surat.preview', $approval->surat) }}" target="_blank" class="text-sm font-bold text-indigo-600 hover:text-indigo-700">
-                        <i class="fas fa-external-link-alt mr-1"></i> Buka Full
-                    </a>
+                <div class="flex items-center gap-3 mb-6">
+                    <h2 class="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Isian Data Permohonan</h2>
+                    <div class="h-px flex-1 bg-gray-50"></div>
                 </div>
-                <div class="bg-slate-100 rounded-xl overflow-hidden border border-slate-200 h-[800px]">
-                    <iframe src="{{ route('admin.surat.preview', ['surat' => $approval->surat, 'mode' => 'stream']) }}" class="w-full h-full"></iframe>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 mb-8">
+                    @php
+                        $suratData = $approval->surat->data ?? [];
+                        $formFields = $approval->surat->jenis?->form_fields ?? [];
+                        $fileFields = collect($formFields)->filter(fn($f) => ($f['type'] ?? '') === 'file');
+                        $otherFields = collect($formFields)->filter(fn($f) => ($f['type'] ?? '') !== 'file' && !in_array($f['key'] ?? '', ['no_surat', 'status', 'pemohon', 'auto_no_surat']));
+                    @endphp
+
+                    @forelse($otherFields as $field)
+                        <div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">{{ $field['label'] }}</div>
+                            <div class="text-sm font-semibold text-gray-700">
+                                @php
+                                    $val = $suratData[$field['key']] ?? '-';
+                                    if (isset($field['options']) && ($field['type'] === 'select' || $field['type'] === 'radio')) {
+                                        $opt = collect($field['options'])->firstWhere('value', $val);
+                                        $val = $opt['label'] ?? $val;
+                                    }
+                                @endphp
+                                {{ is_array($val) ? implode(', ', $val) : $val }}
+                            </div>
+                        </div>
+                    @empty
+                        <div class="md:col-span-2 text-sm text-gray-400 italic">Tidak ada data tambahan.</div>
+                    @endforelse
                 </div>
+
+                {{-- Requirement Files --}}
+                @php
+                    $mainFile = $approval->surat->uploaded_pdf_path;
+                    $extraFiles = [];
+                    foreach($fileFields as $ff) {
+                        if (isset($suratData[$ff['key']])) {
+                            $extraFiles[] = [
+                                'label' => $ff['label'],
+                                'path' => $suratData[$ff['key']]
+                            ];
+                        }
+                    }
+                @endphp
+
+                @if($mainFile || count($extraFiles) > 0)
+                    <div class="space-y-6">
+                        @if($mainFile)
+                            <div class="border-t border-gray-50 pt-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center text-red-600">
+                                            <i class="fas fa-file-pdf text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-bold text-gray-900">Dokumen PDF Utama / Syarat</h3>
+                                            <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest">Wajib Diperiksa</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <a href="{{ asset('uploads/' . $mainFile) }}" target="_blank" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-bold hover:bg-indigo-100 transition-all">
+                                            <i class="fas fa-expand-alt mr-1"></i> Buka Full
+                                        </a>
+                                        <a href="{{ asset('uploads/' . $mainFile) }}" download class="px-3 py-1.5 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-100 transition-all">
+                                            <i class="fas fa-download mr-1"></i> Unduh
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 h-[600px] shadow-inner">
+                                    <iframe src="{{ asset('uploads/' . $mainFile) }}#toolbar=0" class="w-full h-full"></iframe>
+                                </div>
+                            </div>
+                        @endif
+
+                        @foreach($extraFiles as $ef)
+                            <div class="border-t border-gray-50 pt-6">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600">
+                                            <i class="fas fa-file-pdf text-lg"></i>
+                                        </div>
+                                        <div>
+                                            <h3 class="text-sm font-bold text-gray-900">{{ $ef['label'] }}</h3>
+                                            <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest">Lampiran Syarat</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <a href="{{ asset('uploads/' . $ef['path']) }}" target="_blank" class="px-3 py-1.5 bg-blue-50 text-blue-600 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all">
+                                            <i class="fas fa-expand-alt mr-1"></i> Buka Full
+                                        </a>
+                                        <a href="{{ asset('uploads/' . $ef['path']) }}" download class="px-3 py-1.5 bg-slate-50 text-slate-600 rounded-lg text-xs font-bold hover:bg-slate-100 transition-all">
+                                            <i class="fas fa-download mr-1"></i> Unduh
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="bg-slate-100 rounded-2xl overflow-hidden border border-slate-200 h-[500px] shadow-inner">
+                                    <iframe src="{{ asset('uploads/' . $ef['path']) }}#toolbar=0" class="w-full h-full"></iframe>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="p-10 text-center bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100 mt-4">
+                        <i class="fas fa-file-invoice text-gray-200 text-4xl mb-3"></i>
+                        <p class="text-sm text-gray-400 font-medium">Tidak ada lampiran berkas persyaratan.</p>
+                    </div>
+                @endif
             </div>
 
             {{-- Diskusi & Catatan --}}
@@ -155,161 +251,187 @@
 
         {{-- Sidebar --}}
         <div class="space-y-6">
-            {{-- Approval Status --}}
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                <h3 class="font-bold text-slate-900 mb-4 flex items-center gap-2">
-                    <i class="fas fa-clipboard-check text-slate-400"></i>
-                    Status Persetujuan
-                </h3>
-                
-                <div class="relative pl-4 border-l-2 border-slate-100 space-y-6">
-                    @foreach($approval->surat->approvals->sortBy('urutan') as $app)
-                        <div class="relative">
-                            {{-- Dot Indicator --}}
-                            <div class="absolute -left-[21px] top-1 w-4 h-4 rounded-full border-2 border-white shadow-sm
-                                {{ $app->isApproved() ? 'bg-green-500' : ($app->isRejected() ? 'bg-red-500' : 'bg-slate-200') }}">
-                            </div>
+            {{-- Status Tanda Tangan --}}
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+                <div class="p-5 border-b border-gray-50 bg-gray-50/50">
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fas fa-clipboard-check text-indigo-500"></i> Status Tanda Tangan
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="space-y-4">
+                        @foreach($approval->surat->approvals->sortBy('urutan') as $app)
+                            <div class="flex items-start gap-3 relative">
+                                {{-- Connector Line --}}
+                                @if(!$loop->last)
+                                    <div class="absolute left-[11px] top-7 bottom-[-16px] w-0.5 bg-gray-100"></div>
+                                @endif
 
-                            <div class="mb-1 flex items-center justify-between">
-                                <span class="text-xs font-bold uppercase tracking-wider text-slate-400">
-                                    Tahap {{ $app->urutan }}
-                                    @if($app->id === $approval->id)
-                                        <span class="ml-2 px-1.5 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[10px] normal-case">Anda</span>
+                                <div class="relative z-10 shrink-0">
+                                    @if($app->status === 'approved')
+                                        <div class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-[10px] ring-2 ring-white">
+                                            <i class="fas fa-check"></i>
+                                        </div>
+                                    @elseif($app->status === 'rejected')
+                                        <div class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] ring-2 ring-white">
+                                            <i class="fas fa-times"></i>
+                                        </div>
+                                    @else
+                                        <div class="w-6 h-6 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center text-[10px] ring-2 ring-white">
+                                            <i class="fas fa-clock"></i>
+                                        </div>
                                     @endif
-                                </span>
-                                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
-                                    {{ $app->isApproved() ? 'bg-green-50 text-green-600' : ($app->isRejected() ? 'bg-red-50 text-red-600' : 'bg-slate-100 text-slate-500') }}">
-                                    {{ $app->status === 'approved' ? 'Disetujui' : ($app->status === 'rejected' ? 'Ditolak' : 'Pending') }}
-                                </span>
+                                </div>
+                                
+                                <div class="pt-0.5">
+                                    <p class="text-xs font-bold text-gray-800 leading-none mb-1">
+                                        TTD {{ $app->urutan }}: {{ $app->role_nama ?: 'Pejabat' }}
+                                        @if($app->id === $approval->id)
+                                            <span class="ml-1 px-1 py-0.5 bg-indigo-100 text-indigo-600 rounded text-[8px] uppercase tracking-tighter">Anda</span>
+                                        @endif
+                                    </p>
+                                    <p class="text-[10px] leading-relaxed">
+                                        @if($app->status === 'approved')
+                                            <span class="text-emerald-600 font-bold bg-emerald-50 px-1.5 py-0.5 rounded">Selesai</span>
+                                            <span class="block text-gray-400 mt-0.5 font-medium">{{ $app->resolved_signer_name }}</span>
+                                        @elseif($app->status === 'rejected')
+                                            <span class="text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded">Ditolak</span>
+                                            <span class="block text-gray-400 mt-0.5 font-medium">{{ $app->resolved_signer_name }}</span>
+                                        @else
+                                            <span class="text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">Menunggu</span>
+                                            <span class="block text-gray-400 mt-0.5 font-medium">{{ $app->resolved_signer_name }}</span>
+                                        @endif
+                                    </p>
+                                </div>
                             </div>
-                            
-                            <h4 class="font-bold text-slate-800 text-sm">
-                                {{ $app->role_nama ?: ($app->role->nama ?? ($app->dosen->nama ?? 'Pejabat')) }}
-                            </h4>
-                            
-                            @if($app->isApproved())
-                                <p class="text-xs text-slate-500 mt-1">
-                                    <i class="fas fa-check-circle text-green-500 mr-1"></i>
-                                    {{ $app->approved_at->format('d M H:i') }}
-                                </p>
-                            @elseif($app->isRejected())
-                                <p class="text-xs text-red-500 mt-1">
-                                    <i class="fas fa-times-circle mr-1"></i>
-                                    {{ $app->rejected_at->format('d M H:i') }}
-                                </p>
-                            @endif
-                        </div>
-                    @endforeach
+                        @endforeach
+                    </div>
                 </div>
             </div>
 
             {{-- Approval Actions (Moved to Sidebar) --}}
-            @if($approval->isPending())
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                    <h2 class="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <i class="fas fa-pen-fancy text-indigo-600"></i>
-                        Aksi Persetujuan
-                    </h2>
+            @php
+                $currentDosenId = Auth::guard('dosen')->id();
+                
+                // For approval page, only show roles specifically assigned to the current Dosen
+                $myPendingApprovals = $approval->surat->approvals->filter(function($app) use ($currentDosenId) {
+                    return $app->isPending() && $app->dosen_id && $app->dosen_id == $currentDosenId;
+                });
+            @endphp
 
-                    @if($approval->isReady())
-                        <form id="approve-form" action="{{ route('admin.approval.approve', $approval) }}" method="POST" class="mb-6">
-                            @csrf
-                            
-                            <div class="bg-blue-50 border border-blue-100 rounded-xl p-3 mb-4 flex items-start gap-2">
-                                <i class="fas fa-info-circle text-blue-600 mt-0.5 text-xs"></i>
-                                <div>
-                                    <p class="text-xs text-blue-600">Menyetujui sebagai <strong>{{ $approval->role_nama ?: ($approval->role->nama ?? 'Pejabat') }}</strong>.</p>
-                                </div>
+            @if($myPendingApprovals->isNotEmpty())
+                {{-- Personal Actions (Assigned Roles) --}}
+                @foreach($myPendingApprovals as $app)
+                    <div class="bg-indigo-50/30 rounded-2xl shadow-sm border border-indigo-100 p-6 mb-4">
+                        <div class="flex items-center gap-2 mb-4">
+                            <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs">
+                                <i class="fas fa-user-check"></i>
                             </div>
-
-
-
-                            <input type="hidden" name="signature_type" value="canvas"> 
-
-                            {{-- Submit Button --}}
-                            <button type="submit" 
-                                    class="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-md text-sm flex items-center justify-center gap-2">
-                                <i class="fas fa-check-circle"></i>
-                                Setujui
-                            </button>
-                        </form>
-
-                        {{-- Reject Form --}}
-                        <div class="border-t border-slate-100 pt-4">
-                            <button type="button" id="show-reject-form" 
-                                    class="w-full px-4 py-2 bg-red-50 text-red-700 rounded-lg font-semibold hover:bg-red-100 transition-all text-sm flex items-center justify-center gap-2">
-                                <i class="fas fa-times-circle"></i>
-                                Tolak
-                            </button>
-
-                            <form id="reject-form" action="{{ route('admin.approval.reject', $approval) }}" method="POST" class="hidden mt-3">
-                            @csrf
-                            <label class="block text-xs font-bold text-slate-700 mb-1">Alasan Penolakan <span class="text-red-500">*</span></label>
-                            <textarea name="reason" rows="3" required
-                                      class="w-full px-3 py-2 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-50 focus:border-red-500 transition-all mb-2 text-xs"
-                                      placeholder="Alasan..."></textarea>
-                            <div class="flex gap-2">
-                                <button type="submit" class="flex-1 px-3 py-1.5 bg-red-600 text-white rounded font-semibold hover:bg-red-700 text-xs">
-                                    Konfirmasi
-                                </button>
-                                <button type="button" id="cancel-reject" class="flex-1 px-3 py-1.5 bg-slate-100 text-slate-700 rounded font-semibold hover:bg-slate-200 text-xs">
-                                    Kembali
-                                </button>
+                            <div>
+                                <h2 class="text-sm font-bold text-slate-900 leading-tight">Persetujuan Tugas Anda</h2>
+                                <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-wider">{{ $app->role_nama }}</p>
                             </div>
-                        </form>
                         </div>
-                    @else
-                        <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center mt-4">
-                            <i class="fas fa-hourglass-half text-amber-500 text-2xl mb-2 block animate-pulse"></i>
-                            <h4 class="font-bold text-amber-700 text-sm mb-1">Menunggu Persetujuan Sebelumnya</h4>
-                            <p class="text-xs text-amber-600">Anda belum dapat memberikan persetujuan karena masih ada tahap sebelumnya yang belum disetujui (Tahap Urutan ke-{{ $approval->urutan - 1 }} dsb).</p>
-                        </div>
-                    @endif
-                </div>
-            @else
-                {{-- Already Processed --}}
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                    <div class="text-center py-4">
-                        @if($approval->isApproved())
-                            <i class="fas fa-check-circle text-2xl text-green-500 mb-2"></i>
-                            <h3 class="text-sm font-bold text-slate-900 mb-1">Sudah Disetujui</h3>
-                            <p class="text-[10px] text-slate-600">{{ $approval->approved_at->format('d M Y H:i') }}</p>
 
-                            @if($approval->surat->jenis?->is_uploaded && !$isAdmin)
-                                <a href="{{ route('admin.approval.stamping.show', $approval) }}" class="inline-flex items-center gap-2 px-4 py-2 mt-4 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-md">
-                                    <i class="fas fa-arrows-alt"></i>
-                                    Ubah Posisi Tanda Tangan
-                                </a>
-                            @endif
+                        @if($app->isReady())
+                            <form action="{{ route('admin.approval.approve', $app) }}" method="POST" class="approve-form-multi">
+                                @csrf
+                                <input type="hidden" name="signature_type" value="canvas"> 
+                                <button type="submit" 
+                                        class="w-full px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-md text-sm flex items-center justify-center gap-2">
+                                    <i class="fas fa-check-circle"></i>
+                                    Setujui (Sebagai {{ $app->role_nama ?: 'Peran' }})
+                                </button>
+                            </form>
+
+                            <div class="mt-3">
+                                <button type="button" data-app-id="{{ $app->id }}" class="btn-show-reject w-full px-4 py-1.5 bg-white text-red-600 border border-red-100 rounded-lg font-semibold hover:bg-red-50 transition-all text-xs">
+                                    Tolak Permohonan
+                                </button>
+                                <form id="reject-form-{{ $app->id }}" action="{{ route('admin.approval.reject', $app) }}" method="POST" class="hidden mt-3">
+                                    @csrf
+                                    <textarea name="reason" rows="2" required class="w-full px-3 py-2 border border-red-200 rounded-lg text-xs mb-2" placeholder="Alasan penolakan..."></textarea>
+                                    <div class="flex gap-2">
+                                        <button type="submit" class="flex-1 py-1.5 bg-red-600 text-white rounded font-bold text-[10px]">Konfirmasi Tolak</button>
+                                        <button type="button" data-app-id="{{ $app->id }}" class="btn-cancel-reject flex-1 py-1.5 bg-slate-100 text-slate-600 rounded font-bold text-[10px]">Batal</button>
+                                    </div>
+                                </form>
+                            </div>
                         @else
-                            <i class="fas fa-times-circle text-2xl text-red-500 mb-2"></i>
-                            <h3 class="text-sm font-bold text-slate-900 mb-1">Sudah Ditolak</h3>
-                            <p class="text-[10px] text-slate-600">{{ $approval->rejected_at->format('d M Y H:i') }}</p>
-                        @endif
-
-                        @if($approval->catatan)
-                            <div class="mt-3 p-3 bg-slate-50 rounded-lg text-left">
-                                <p class="text-xs font-semibold text-slate-700 mb-0.5">Catatan:</p>
-                                <p class="text-xs text-slate-600 italic">"{{ $approval->catatan }}"</p>
+                            <div class="bg-amber-50 border border-amber-100 rounded-xl p-3 text-center">
+                                <p class="text-[10px] text-amber-700 font-bold leading-tight">Menunggu Giliran Tanda Tangan Tahap Sebelumnya</p>
                             </div>
                         @endif
                     </div>
+                @endforeach
+            @else
+                {{-- No pending actions --}}
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 text-center">
+                    @if($approval->isApproved())
+                        <div class="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-check-circle text-3xl"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-1">Sudah Selesai</h3>
+                        <p class="text-xs text-slate-500 mb-6">Tindakan anda terhadap surat ini sebagai <strong>{{ $approval->role_nama }}</strong> telah berhasil diproses.</p>
+                        
+                        @if($approval->surat->jenis?->is_uploaded && !$isAdminSide)
+                            <a href="{{ route('admin.approval.stamping.show', $approval) }}" class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200">
+                                <i class="fas fa-arrows-alt"></i>
+                                Atur Posisi Tanda Tangan
+                            </a>
+                        @endif
+                    @elseif($approval->isRejected())
+                        <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-times-circle text-3xl"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-1">Permohonan Ditolak</h3>
+                        <p class="text-xs text-slate-500">Persetujuan untuk surat ini telah dihentikan karena penolakan.</p>
+                    @else
+                        <div class="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-info-circle text-3xl"></i>
+                        </div>
+                        <h3 class="text-base font-bold text-slate-900 mb-1">Hanya Pratinjau</h3>
+                        <p class="text-xs text-slate-500">Anda tidak memiliki peran persetujuan yang tertunda untuk surat ini.</p>
+                    @endif
                 </div>
             @endif
+        </div>
         </div>
     </div>
 </div>
 
-{{-- Simple Script for Reject Toggle Only --}}
+{{-- Updated script for multiple forms --}}
 <script>
-    document.getElementById('show-reject-form')?.addEventListener('click', () => {
-        document.getElementById('reject-form').classList.remove('hidden');
-        document.getElementById('show-reject-form').classList.add('hidden');
+    document.addEventListener('click', function(e) {
+        // Toggle Show Reject
+        if (e.target.closest('.btn-show-reject')) {
+            const appId = e.target.closest('.btn-show-reject').dataset.appId;
+            const form = document.getElementById('reject-form-' + appId);
+            const btn = e.target.closest('.btn-show-reject');
+            if (form) {
+                form.classList.remove('hidden');
+                btn.classList.add('hidden');
+            }
+        }
+        
+        // Toggle Cancel Reject
+        if (e.target.closest('.btn-cancel-reject')) {
+            const appId = e.target.closest('.btn-cancel-reject').dataset.appId;
+            const form = document.getElementById('reject-form-' + appId);
+            const btn = document.querySelector(`.btn-show-reject[data-app-id="${appId}"]`);
+            if (form) {
+                form.classList.add('hidden');
+                if (btn) btn.classList.remove('hidden');
+            }
+        }
     });
 
-    document.getElementById('cancel-reject')?.addEventListener('click', () => {
-        document.getElementById('reject-form').classList.add('hidden');
-        document.getElementById('show-reject-form').classList.remove('hidden');
+    // Add confirmation on bulk approve if multiple forms exist
+    document.querySelectorAll('.approve-form-multi').forEach(form => {
+        form.addEventListener('submit', function(e) {
+            this.querySelector('button[type="submit"]').disabled = true;
+            this.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+        });
     });
 </script>
 @endsection

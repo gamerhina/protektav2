@@ -37,6 +37,10 @@
                     </button>
                 </form>
             @endif
+            <button type="button" onclick="document.getElementById('main-surat-form').submit()" class="btn-pill btn-pill-primary shadow-lg shadow-blue-100 !no-underline flex items-center gap-2">
+                <i class="fas fa-save"></i>
+                Simpan
+            </button>
             <a href="{{ route('admin.surat.index') }}" class="btn-pill btn-pill-secondary !no-underline">
                 Kembali
             </a>
@@ -53,7 +57,7 @@
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Form Content -->
         <div class="lg:col-span-2 space-y-6">
-            <form method="POST" action="{{ route('admin.surat.update', $surat) }}" enctype="multipart/form-data">
+            <form id="main-surat-form" method="POST" action="{{ route('admin.surat.update', $surat) }}" enctype="multipart/form-data">
                 @csrf
                 @method('PUT')
 
@@ -201,6 +205,92 @@
                     @endif
                 </div>
             </div>
+
+            @php
+                // Show ALL approval stages for Admin overview & control
+                $adminActions = $surat->approvals->sortBy('urutan');
+            @endphp
+
+            @if($adminActions->isNotEmpty())
+                <div class="bg-slate-50 rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-5 border-b border-slate-200 bg-slate-100/50 flex items-center gap-2">
+                        <i class="fas fa-shield-alt text-slate-700"></i>
+                        <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Log & Kendali Persetujuan</h3>
+                    </div>
+                    <div class="p-6 space-y-4">
+                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 mb-2">
+                            <p class="text-[10px] text-blue-800 leading-normal">
+                                <i class="fas fa-history mr-1 text-blue-600"></i>
+                                Berikut adalah riwayat lengkap dan panel kendali untuk setiap tahap persetujuan dokumen ini.
+                            </p>
+                        </div>
+                        
+                        @foreach($adminActions as $app)
+                             <div class="p-4 bg-white border border-slate-100 rounded-xl shadow-sm">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tahap {{ $app->urutan }}: {{ $app->role_nama }}</span>
+                                    
+                                    @if($app->status === 'approved')
+                                        <span class="text-[9px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                            <i class="fas fa-check-circle"></i> Selesai
+                                        </span>
+                                    @elseif($app->status === 'rejected')
+                                        <span class="text-[9px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                            <i class="fas fa-times-circle"></i> Ditolak
+                                        </span>
+                                    @elseif(!$app->isReady())
+                                        <span class="text-[9px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-bold">Menunggu Giliran</span>
+                                    @else
+                                        <span class="text-[9px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 animate-pulse">
+                                            <i class="fas fa-arrow-right"></i> Sedang Diproses
+                                        </span>
+                                    @endif
+                                </div>
+
+                                <div class="mb-3">
+                                    <p class="text-[10px] text-slate-600 font-medium">Target: <strong>{{ $app->resolved_signer_name }}</strong></p>
+                                    
+                                    @if($app->status === 'approved')
+                                        <p class="text-[9px] text-slate-400 mt-1 italic">
+                                            Disetujui pada {{ $app->approved_at?->format('d/m/Y H:i') }}
+                                        </p>
+                                    @elseif($app->status === 'rejected')
+                                        <div class="mt-2 p-2 bg-red-50 border border-red-100 rounded text-[9px] text-red-700 italic">
+                                            "{{ $app->catatan ?? 'Tidak ada alasan' }}"
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                @if($app->isPending())
+                                    @if($app->isReady())
+                                        <form action="{{ route('admin.approval.approve', $app) }}" method="POST" class="approve-form-multi mb-2">
+                                            @csrf
+                                            <input type="hidden" name="signature_type" value="canvas"> 
+                                            <button type="submit" class="w-full py-2 bg-slate-800 text-white rounded-lg font-bold hover:bg-slate-900 transition-all text-xs flex items-center justify-center gap-2">
+                                                <i class="fas fa-check-double"></i> Validasi Sekarang
+                                            </button>
+                                        </form>
+                                        
+                                        <button type="button" data-app-id="{{ $app->id }}" class="btn-show-reject w-full py-2 text-red-600 border border-red-50 rounded-lg font-semibold hover:bg-red-50 transition-all text-[10px]">
+                                            Tolak
+                                        </button>
+                                        <form id="reject-form-{{ $app->id }}" action="{{ route('admin.approval.reject', $app) }}" method="POST" class="hidden mt-3">
+                                            @csrf
+                                            <textarea name="reason" rows="2" required class="w-full px-3 py-2 border border-red-200 rounded-lg text-xs mb-2" placeholder="Alasan..."></textarea>
+                                            <div class="flex gap-2">
+                                                <button type="submit" class="flex-1 py-1.5 bg-red-600 text-white rounded font-bold text-[10px]">Ya, Tolak</button>
+                                                <button type="button" data-app-id="{{ $app->id }}" class="btn-cancel-reject flex-1 py-1.5 bg-slate-100 text-slate-600 rounded font-bold text-[10px]">Batal</button>
+                                            </div>
+                                        </form>
+                                    @else
+                                        <p class="text-[10px] text-slate-400 italic text-center py-1">Menunggu penyelesaian tahap sebelumnya untuk dapat divalidasi manual.</p>
+                                    @endif
+                                @endif
+                             </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
 
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-5 border-b border-gray-50 bg-gray-50/50">
@@ -1921,6 +2011,36 @@
                         alert('Nomor WA/HP tidak ditemukan pada profil pemohon.');
                     }
                 }
+
+                // Toggle Show Reject
+                if (e.target.closest('.btn-show-reject')) {
+                    const appId = e.target.closest('.btn-show-reject').dataset.appId;
+                    const form = document.getElementById('reject-form-' + appId);
+                    const btn = e.target.closest('.btn-show-reject');
+                    if (form) {
+                        form.classList.remove('hidden');
+                        btn.classList.add('hidden');
+                    }
+                }
+                
+                // Toggle Cancel Reject
+                if (e.target.closest('.btn-cancel-reject')) {
+                    const appId = e.target.closest('.btn-cancel-reject').dataset.appId;
+                    const form = document.getElementById('reject-form-' + appId);
+                    const btn = document.querySelector(`.btn-show-reject[data-app-id="${appId}"]`);
+                    if (form) {
+                        form.classList.add('hidden');
+                        if (btn) btn.classList.remove('hidden');
+                    }
+                }
+            });
+
+            // Handle approval submission
+            document.querySelectorAll('.approve-form-multi').forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    this.querySelector('button[type="submit"]').disabled = true;
+                    this.querySelector('button[type="submit"]').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Memproses...';
+                });
             });
         })();
     </script>
