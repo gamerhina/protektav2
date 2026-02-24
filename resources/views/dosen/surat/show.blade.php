@@ -50,19 +50,19 @@
                     <!-- Applicant Info -->
                     <div class="flex items-center gap-3 bg-gray-50/50 px-4 py-3 rounded-xl border border-gray-100 min-w-[260px]">
                         <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm border border-blue-200">
-                            {{ substr($surat->pemohon->nama ?? $surat->mahasiswa->nama ?? 'U', 0, 1) }}
+                            {{ substr($surat->pemohon?->nama ?? $surat->mahasiswa?->nama ?? 'U', 0, 1) }}
                         </div>
                         <div>
                             <div class="font-bold text-gray-900 text-sm leading-tight">
-                                {{ $surat->pemohon->nama ?? $surat->mahasiswa->nama ?? 'Unknown' }}
+                                {{ $surat->pemohon?->nama ?? $surat->mahasiswa?->nama ?? 'Unknown' }}
                             </div>
                             <div class="text-[9px] uppercase font-bold tracking-widest text-gray-500 mt-0.5">
                                 @if($surat->pemohon_type === 'dosen')
-                                    Dosen / {{ $surat->pemohon->nip ?? '-' }}
+                                    Dosen / {{ $surat->pemohon?->nip ?? '-' }}
                                 @elseif($surat->pemohon_type === 'mahasiswa')
-                                    MHS / {{ $surat->mahasiswa->npm ?? ($surat->pemohon->npm ?? '-') }}
+                                    MHS / {{ $surat->mahasiswa?->npm ?? ($surat->pemohon?->npm ?? '-') }}
                                 @else
-                                    {{ ucfirst($surat->pemohon_type) }}
+                                    {{ ucfirst($surat->pemohon_type ?: 'Pemohon') }}
                                 @endif
                             </div>
                         </div>

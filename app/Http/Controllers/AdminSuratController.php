@@ -45,11 +45,12 @@ class AdminSuratController extends Controller
 
         $direction = strtolower($request->input('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
-        $query = Surat::with(['jenis', 'pemohonDosen', 'pemohonMahasiswa', 'mahasiswa'])
+        $query = Surat::with(['jenis', 'pemohonAdmin', 'pemohonDosen', 'pemohonMahasiswa', 'mahasiswa'])
             ->select('surats.*')
-            ->selectRaw('COALESCE(m.nama, d.nama) as pemohon_nama')
+            ->selectRaw('COALESCE(m.nama, d.nama, a.nama) as pemohon_nama')
             ->leftJoin('mahasiswa as m', 'm.id', '=', 'surats.pemohon_mahasiswa_id')
             ->leftJoin('dosen as d', 'd.id', '=', 'surats.pemohon_dosen_id')
+            ->leftJoin('admins as a', 'a.id', '=', 'surats.pemohon_admin_id')
             ->leftJoin('surat_jenis', 'surat_jenis.id', '=', 'surats.surat_jenis_id');
 
         if ($request->filled('status_filter')) {
@@ -65,6 +66,7 @@ class AdminSuratController extends Controller
                     ->orWhere('surats.status', 'like', $s)
                     ->orWhere('m.nama', 'like', $s)
                     ->orWhere('d.nama', 'like', $s)
+                    ->orWhere('a.nama', 'like', $s)
                     ->orWhere('surat_jenis.nama', 'like', $s);
             });
         }
@@ -187,8 +189,8 @@ class AdminSuratController extends Controller
                     $sources = ['mahasiswa', 'dosen'];
                 }
                 
-                // Add 'custom' to allowed types
-                $allowedTypes = array_merge($sources, ['custom']);
+                // Always allow admin and custom
+                $allowedTypes = array_unique(array_merge($sources, ['admin', 'custom']));
 
                 $rules["form_data.$key"] = ($required ? 'required|' : 'nullable|') . 'array';
                 $rules["form_data.$key.type"] = ($required ? 'required|' : 'nullable|') . 'in:' . implode(',', $allowedTypes);
@@ -310,7 +312,8 @@ class AdminSuratController extends Controller
 
         $payload = [
             'surat_jenis_id' => $jenis->id,
-            'pemohon_type' => 'dosen',
+            'pemohon_type' => 'admin',
+            'pemohon_admin_id' => auth('admin')->id(),
             'pemohon_dosen_id' => null,
             'pemohon_mahasiswa_id' => null,
             'mahasiswa_id' => null,
@@ -429,7 +432,7 @@ class AdminSuratController extends Controller
 
     public function show(Surat $surat)
     {
-        $surat->load(['jenis.template', 'pemohonDosen', 'pemohonMahasiswa', 'mahasiswa', 'approvals.dosen', 'approvals.role', 'comments.user']);
+        $surat->load(['jenis.template', 'pemohonAdmin', 'pemohonDosen', 'pemohonMahasiswa', 'mahasiswa', 'approvals.dosen', 'approvals.role', 'comments.user']);
         $dosens = Dosen::orderBy('nama')->get(['id', 'nama', 'nip', 'email']);
         $mahasiswas = Mahasiswa::orderBy('nama')->get(['id', 'nama', 'npm', 'email']);
         $admins = \App\Models\Admin::orderBy('nama')->get(['id', 'nama', 'email', 'nip']);
@@ -509,14 +512,21 @@ class AdminSuratController extends Controller
                     $validated['pemohon_type'] = 'custom';
                     $validated['pemohon_mahasiswa_id'] = null;
                     $validated['pemohon_dosen_id'] = null;
+                } elseif ($pemType === 'admin' && $pemId > 0) {
+                    $validated['pemohon_type'] = 'admin';
+                    $validated['pemohon_admin_id'] = $pemId;
+                    $validated['pemohon_mahasiswa_id'] = null;
+                    $validated['pemohon_dosen_id'] = null;
                 } elseif ($pemType === 'mahasiswa' && $pemId > 0) {
                     $validated['pemohon_type'] = 'mahasiswa';
                     $validated['pemohon_mahasiswa_id'] = $pemId;
                     $validated['pemohon_dosen_id'] = null;
+                    $validated['pemohon_admin_id'] = null;
                 } elseif ($pemType === 'dosen' && $pemId > 0) {
                     $validated['pemohon_type'] = 'dosen';
                     $validated['pemohon_dosen_id'] = $pemId;
                     $validated['pemohon_mahasiswa_id'] = null;
+                    $validated['pemohon_admin_id'] = null;
                 }
             }
 

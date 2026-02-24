@@ -163,7 +163,7 @@
             ${sources.includes('mahasiswa') ? `<optgroup label="Mahasiswa">${mhsOptions}</optgroup>` : ''}
             ${sources.includes('dosen') ? `<optgroup label="Dosen">${dosenOptions}</optgroup>` : ''}
             <optgroup label="Admin">
-                <option value="admin:{{ Auth::id() }}">Saya Sendiri (Admin)</option>
+                <option value="admin:{{ auth('admin')->id() }}">Saya Sendiri (Admin)</option>
                 ${adminOptions}
             </optgroup>
             <optgroup label="Lainnya">

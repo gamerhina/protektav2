@@ -390,8 +390,16 @@ class PdfGeneratorService
                 $url = '';
                 if ($tag === 'surat_qr_code') {
                     $url = $surat->verification_url;
-                } elseif ($tag === 'dosen_qr_signature' || $tag === 'pemohon_qr_signature') {
-                    $url = \Illuminate\Support\Facades\URL::signedRoute('verify.surat.signature', ['suratId' => $surat->id, 'type' => 'pemohon']);
+                } elseif ($tag === 'pemohon_qr_signature') {
+                    $url = \Illuminate\Support\Facades\URL::signedRoute('verify.surat.signature', [
+                        'suratId' => $surat->id, 
+                        'type' => 'pemohon'
+                    ]);
+                } elseif ($tag === 'dosen_qr_signature') {
+                    $url = \Illuminate\Support\Facades\URL::signedRoute('verify.surat.signature', [
+                        'suratId' => $surat->id, 
+                        'type' => 'pemohon'
+                    ]);
                 } elseif (str_ends_with($tag, '_qr_signature')) {
                     $roleCodeToMatch = str_replace('_qr_signature', '', $tag);
                     $approval = $surat->approvals->filter(function($a) use ($roleCodeToMatch) {
@@ -655,7 +663,9 @@ class PdfGeneratorService
                 $path = \Illuminate\Support\Facades\Storage::disk('public')->path($pemohonDosen->signature_path);
                 $type = pathinfo($path, PATHINFO_EXTENSION);
                 $imgData = file_get_contents($path);
-                $data['dosen_signature'] = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
+                $signatureData = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
+                $data['dosen_signature'] = $signatureData;
+                $data['pemohon_signature'] = $signatureData;
             }
         } elseif ($pemohonMahasiswa) {
             $data['mahasiswa_nama'] = $pemohonMahasiswa->nama;
@@ -667,6 +677,8 @@ class PdfGeneratorService
         } elseif ($pemohonAdmin) {
             $data['admin_nama'] = $pemohonAdmin->nama;
             $data['pemohon_nama'] = $pemohonAdmin->nama;
+            $data['admin_nip'] = $pemohonAdmin->nip ?? '-';
+            $data['pemohon_nip_npm'] = $pemohonAdmin->nip ?? '-';
         }
 
         // Generic Pemohon Tags for custom types

@@ -195,8 +195,9 @@ class VerificationController extends Controller
         $approval = null;
         if ($type === 'pemohon') {
             // Pemohon is special
-            $approverName = $surat->pemohonDosen->nama ?? $surat->pemohonMahasiswa->nama ?? '-';
-            $approverNip = $surat->pemohonDosen->nip ?? $surat->pemohonMahasiswa->npm ?? '-';
+            $pemohon = $surat->pemohon;
+            $approverName = $pemohon->nama ?? '-';
+            $approverNip = $pemohon->nip ?? ($pemohon->npm ?? '-');
             $approvalTime = $surat->created_at;
             $roleName = 'Pemohon';
         } else {

@@ -48,7 +48,7 @@
                     <div class="flex items-start gap-4">
                         <div class="w-32 text-sm font-semibold text-slate-600">Pemohon:</div>
                         <div class="flex-1 font-medium text-slate-900">
-                            {{ $approval->surat->pemohonDosen->nama ?? $approval->surat->mahasiswa->nama ?? '-' }}
+                            {{ $approval->surat->pemohon?->nama ?? '-' }}
                         </div>
                     </div>
 

@@ -91,17 +91,17 @@
                         <td class="px-6 py-4 text-sm text-gray-700">
                             <div>
                                 <div class="font-bold text-gray-900 leading-tight">
-                                    {{ $s->pemohonDosen->nama ?? $s->pemohonMahasiswa->nama ?? $s->pemohonAdmin->nama ?? 'Unknown' }}
+                                    {{ $s->pemohon?->nama ?? 'Unknown' }}
                                 </div>
                                 <div class="text-[10px] uppercase font-bold tracking-wider mt-0.5">
                                     @if($s->pemohon_type === 'admin')
-                                        <span class="text-indigo-600">Admin</span>
+                                        <span class="text-gray-400">Admin</span> <span class="text-gray-300">/</span> <span class="text-gray-500">{{ $s->pemohonAdmin?->nip ?? '-' }}</span>
                                     @elseif($s->pemohon_type === 'mahasiswa')
-                                        <span class="text-gray-400">Mahasiswa</span> <span class="text-gray-300">/</span> <span class="text-gray-500">{{ $s->pemohonMahasiswa->npm ?? '-' }}</span>
+                                        <span class="text-gray-400">Mahasiswa</span> <span class="text-gray-300">/</span> <span class="text-gray-500">{{ $s->pemohonMahasiswa?->npm ?? '-' }}</span>
                                     @elseif($s->pemohon_type === 'dosen')
-                                        <span class="text-gray-400">Dosen</span> <span class="text-gray-300">/</span> <span class="text-gray-500">{{ $s->pemohonDosen->nip ?? '-' }}</span>
+                                        <span class="text-gray-400">Dosen</span> <span class="text-gray-300">/</span> <span class="text-gray-500">{{ $s->pemohonDosen?->nip ?? '-' }}</span>
                                     @else
-                                        <span class="text-gray-400">{{ $s->pemohon_type }}</span>
+                                        <span class="text-gray-400">{{ ucfirst($s->pemohon_type ?: 'Pemohon') }}</span>
                                     @endif
                                 </div>
                             </div>

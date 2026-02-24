@@ -66,19 +66,21 @@
                         <!-- Applicant Info (Compact) -->
                         <div class="flex items-center gap-3 bg-gray-50/50 px-4 py-3 rounded-xl border border-gray-100 min-w-[260px]">
                             <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-sm border border-blue-200">
-                                {{ substr($surat->pemohonDosen->nama ?? $surat->pemohonMahasiswa->nama ?? $surat->pemohonAdmin->nama ?? 'U', 0, 1) }}
+                                {{ substr($surat->pemohon?->nama ?? 'U', 0, 1) }}
                             </div>
                             <div>
                                 <div class="font-bold text-gray-900 text-sm leading-tight">
-                                    {{ $surat->pemohonDosen->nama ?? $surat->pemohonMahasiswa->nama ?? $surat->pemohonAdmin->nama ?? 'Unknown' }}
+                                    {{ $surat->pemohon?->nama ?? 'Unknown' }}
                                 </div>
                                 <div class="text-[9px] uppercase font-bold tracking-widest text-gray-500 mt-0.5">
                                     @if($surat->pemohon_type === 'admin')
-                                        Admin
+                                        Admin / {{ $surat->pemohonAdmin?->nip ?? '-' }}
                                     @elseif($surat->pemohon_type === 'mahasiswa')
-                                        MHS / {{ $surat->pemohonMahasiswa->npm ?? '-' }}
+                                        MHS / {{ $surat->pemohonMahasiswa?->npm ?? '-' }}
                                     @elseif($surat->pemohon_type === 'dosen')
-                                        DSN / {{ $surat->pemohonDosen->nip ?? '-' }}
+                                        DSN / {{ $surat->pemohonDosen?->nip ?? '-' }}
+                                    @else
+                                        Pemohon: {{ ucfirst($surat->pemohon_type) }}
                                     @endif
                                 </div>
                             </div>
@@ -656,8 +658,8 @@
                         </div>
                     @endif
 
-                    <input type="hidden" id="input-recipient" value="{{ $surat->penerima_email ?: ($surat->pemohon->email ?? '') }}">
-                    <input type="hidden" id="input-wa" value="{{ $surat->pemohon->wa ?: ($surat->pemohon->hp ?? '') }}">
+                    <input type="hidden" id="input-recipient" value="{{ $surat->penerima_email ?: ($surat->pemohon?->email ?? '') }}">
+                    <input type="hidden" id="input-wa" value="{{ ($surat->pemohon?->wa ?: $surat->pemohon?->hp) ?? '' }}">
                 </div>
             </div>
         </div>

@@ -151,6 +151,31 @@ class Surat extends Model
         if ($this->pemohon_type === 'admin') {
             return $this->pemohonAdmin;
         }
+
+        if ($this->pemohon_type === 'custom') {
+            $data = is_array($this->data) ? $this->data : [];
+            $customNama = 'Custom Applicant';
+            $customNip = '-';
+
+            // Find nested custom data
+            foreach ($data as $val) {
+                if (is_array($val) && isset($val['type']) && $val['type'] === 'custom') {
+                    $customNama = $val['custom_nama'] ?? $customNama;
+                    $customNip = $val['custom_nip'] ?? $customNip;
+                    break;
+                }
+            }
+
+            return (object) [
+                'nama' => $customNama,
+                'nip' => $customNip,
+                'npm' => $customNip,
+                'email' => $this->penerima_email ?? '',
+                'wa' => '',
+                'hp' => '',
+            ];
+        }
+
         return null;
     }
 
