@@ -263,8 +263,8 @@ i[class*="fa-"], i[class*="fab"], i[class*="fas"], i[class*="far"] {
 }
 .rich-text-content a {
     text-decoration: underline !important;
-    color: inherit; /* Allow color from parent or inline style */
+    color: inherit; /*Allow color from parent or inline style*/
 }
 .rich-text-content a:not([style*="color"]) {
-    color: #2563eb; /* Default blue only if no manual color is set */
+    color: #2563eb; /*Default blue only if no manual color is set*/
 }

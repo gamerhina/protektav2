@@ -11,7 +11,7 @@ window.Chart = Chart;
 
 /**
  * GLOBAL ARCHITECTURE: PROTEKTA APP JS
- * Terpusat, Efisien, dan AJAX-Ready.
+ * Terpusat, Efisien, dan AJAX-Ready
  */
 
 // Initial Setup (Merge with existing if present)
