@@ -38,11 +38,8 @@ class SuratSubmittedNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        $pemohon = $this->surat->pemohon_type === 'mahasiswa' 
-            ? ($this->surat->pemohonMahasiswa->nama ?? 'N/A')
-            : ($this->surat->pemohonDosen->nama ?? 'N/A');
-
-        $pemohonType = $this->surat->pemohon_type === 'mahasiswa' ? 'Mahasiswa' : 'Dosen';
+        $pemohon = $this->surat->pemohon?->nama ?? 'N/A';
+        $pemohonType = ucfirst($this->surat->pemohon_type ?? 'Pemohon');
 
         return (new MailMessage)
             ->subject('Pengajuan Surat Baru - ' . ($this->surat->jenis->nama ?? 'N/A'))
@@ -66,9 +63,7 @@ class SuratSubmittedNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
-        $pemohon = $this->surat->pemohon_type === 'mahasiswa' 
-            ? ($this->surat->pemohonMahasiswa->nama ?? 'N/A')
-            : ($this->surat->pemohonDosen->nama ?? 'N/A');
+        $pemohon = $this->surat->pemohon?->nama ?? 'N/A';
 
         return [
             'surat_id' => $this->surat->id,

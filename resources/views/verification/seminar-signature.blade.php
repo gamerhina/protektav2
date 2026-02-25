@@ -17,8 +17,13 @@
     <div class="bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden my-8">
         <!-- Header -->
         <div class="bg-gradient-to-r from-indigo-500 to-purple-600 p-8 text-white text-center">
+            @php
+                $brandingSettings = \App\Models\LandingPageSetting::first();
+                $logoUrl = optional($brandingSettings)->logo_url ?? asset('assets/images/unila-logo.png');
+                $appName = optional($brandingSettings)->app_name ?? config('app.name');
+            @endphp
             <div class="w-24 h-24 flex items-center justify-center mx-auto mb-4">
-                <img src="{{ asset('assets/images/unila-logo.png') }}" alt="Logo Universitas Lampung" class="w-full h-full object-contain">
+                <img src="{{ $logoUrl }}" alt="Logo {{ $appName }}" class="w-full h-full object-contain">
             </div>
             <h1 class="text-2xl font-bold">Tanda Tangan Terverifikasi</h1>
         </div>

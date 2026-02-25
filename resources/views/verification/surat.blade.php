@@ -21,8 +21,13 @@
                 <div class="bg-white rounded-3xl shadow-2xl overflow-hidden sticky top-8">
                     <!-- Header with Logo -->
                     <div class="bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white text-center">
+                        @php
+                            $brandingSettings = \App\Models\LandingPageSetting::first();
+                            $logoUrl = optional($brandingSettings)->logo_url ?? asset('assets/images/unila-logo.png');
+                            $appName = optional($brandingSettings)->app_name ?? config('app.name');
+                        @endphp
                         <div class="w-20 h-20 bg-white p-2 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                            <img src="{{ asset('assets/images/unila-logo.png') }}" alt="Logo Universitas Lampung" class="w-full h-full object-contain">
+                            <img src="{{ $logoUrl }}" alt="Logo {{ $appName }}" class="w-full h-full object-contain">
                         </div>
                         <h1 class="text-2xl font-bold uppercase tracking-tight">Terverifikasi</h1>
                     </div>
