@@ -3,7 +3,7 @@
 @section('title', 'Kelola Seminar')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="px-3 sm:px-6 lg:px-8 py-8 w-full">
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
             <h1 class="text-2xl font-semibold text-gray-800">Kelola Seminar</h1>
@@ -70,6 +70,7 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                     <tr>
+                        <x-sortable-th column="created_at" label="Pengajuan" :default-sort="$defaultSort" :default-direction="$defaultDirection" class="w-32" />
                         <x-sortable-th column="no_surat" label="Nomor Surat" :default-sort="$defaultSort" :default-direction="$defaultDirection" class="w-1/5" />
                         <x-sortable-th column="mahasiswa" label="Mahasiswa" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
                         <x-sortable-th column="jenis" label="Jenis" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
@@ -82,6 +83,9 @@
                 <tbody class="bg-white divide-y divide-gray-100">
                     @foreach($seminars as $seminar)
                     <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-[13px] text-gray-500 font-medium whitespace-nowrap">
+                            {{ $seminar->created_at ? $seminar->created_at->translatedFormat('d M Y') : '-' }}
+                        </td>
                         <td class="px-6 py-4 text-sm font-semibold text-gray-800 break-all">{{ $seminar->no_surat ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $seminar->mahasiswa->nama ?? 'N/A' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-600">{{ $seminar->seminarJenis->nama ?? 'N/A' }}</td>

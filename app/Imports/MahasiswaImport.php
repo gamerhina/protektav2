@@ -39,7 +39,7 @@ class MahasiswaImport implements ToCollection, WithHeadingRow
                     'email' => $row['email'],
                     'hp' => $row['hp'] ?? null,
                     'wa' => $row['wa'] ?? null,
-                    'pembimbing_akademik_id' => $paId ?: $mahasiswa->pembimbing_akademik_id,
+                    'pembimbing_akademik_id' => $paId, // Langsung gunakan hasil pencarian (bisa null jika di Excel kosong)
                 ]);
             } else {
                 // Jika belum ada, buat baru

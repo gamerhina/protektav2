@@ -3,7 +3,7 @@
 @section('title', 'Kelola Surat')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="px-3 sm:px-6 lg:px-8 py-8 w-full">
     <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white p-4 rounded-xl border border-gray-200 shadow-sm mb-6">
             <div>
@@ -74,6 +74,7 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead>
                     <tr>
+                        <x-sortable-th column="created_at" label="Pengajuan" :default-sort="$defaultSort" :default-direction="$defaultDirection" class="w-28" />
                         <x-sortable-th column="no_surat" label="Nomor Surat" :default-sort="$defaultSort" :default-direction="$defaultDirection" class="w-1/5" />
                         <x-sortable-th column="pemohon" label="Pemohon" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
                         <x-sortable-th column="surat_jenis_id" label="Jenis Layanan" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
@@ -85,6 +86,9 @@
                 <tbody class="bg-white divide-y divide-gray-100">
                     @forelse($items as $s)
                     <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="px-6 py-4 text-[13px] text-gray-500 font-medium whitespace-nowrap">
+                            {{ $s->created_at->translatedFormat('d M Y') }}
+                        </td>
                         <td class="px-6 py-4 text-sm font-semibold text-gray-800 break-all">
                              {{ $s->no_surat ?: '-' }}
                         </td>
@@ -145,7 +149,7 @@
                     </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                            <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                                 <div class="flex flex-col items-center justify-center">
                                     <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
                                         <i class="fas fa-inbox text-3xl text-gray-300"></i>
