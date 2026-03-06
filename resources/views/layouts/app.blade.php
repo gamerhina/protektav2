@@ -355,7 +355,8 @@
             padding: 1.5rem 0.75rem 2rem;
             /* Default padding for content (desktop/tablet) */
             min-height: calc(100vh - 4rem);
-            transition: margin-left .3s ease;
+            transition: margin-left 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: margin-left;
         }
 
         .app-main-inner {
@@ -440,14 +441,14 @@
             position: fixed;
             left: 0;
             top: 0;
-            bottom: 0; /* Ensures it fills to the bottom of the viewport regardless of URL bar */
-            height: auto !important; /* Override any height classes */
+            bottom: 0; 
+            height: auto !important; 
             overflow-y: auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(18px);
+            background: #ffffff; /* Solid color for maximum performance */
             box-shadow: 0 18px 40px rgba(15, 23, 42, .15);
             transform: translateX(-100%);
-            transition: transform .3s ease;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
             z-index: 40;
             padding-top: 4.5rem;
             padding-bottom: 5rem; /* Large enough padding for mobile bars */
@@ -519,12 +520,12 @@
         .app-sidebar-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(15, 23, 42, 0.55);
-            backdrop-filter: blur(2px);
+            background: rgba(15, 23, 42, 0.4); /* Pure transparency, no blur */
             z-index: 30;
             opacity: 0;
             pointer-events: none;
-            transition: opacity .3s ease;
+            transition: opacity .4s ease;
+            will-change: opacity;
         }
 
         @media (min-width: 1024px) {
@@ -543,7 +544,8 @@
         }
 
         footer {
-            transition: margin-left .3s ease;
+            transition: margin-left .4s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: margin-left;
         }
 
         @media (min-width: 1024px) {
