@@ -22,10 +22,16 @@ class DosenImport implements ToCollection, WithHeadingRow
             // Cek apakah dosen sudah ada berdasarkan NIP
             $dosen = Dosen::where('nip', $row['nip'])->first();
 
+            // Jika tidak ditemukan berdasarkan NIP, cek berdasarkan Email
+            if (!$dosen && !empty($row['email'])) {
+                $dosen = Dosen::where('email', $row['email'])->first();
+            }
+
             if ($dosen) {
                 // Jika sudah ada, update data
                 $dosen->update([
                     'nama' => $row['nama'],
+                    'nip' => $row['nip'],
                     'email' => $row['email'],
                     'hp' => $row['hp'] ?? null,
                     'wa' => $row['wa'] ?? null,

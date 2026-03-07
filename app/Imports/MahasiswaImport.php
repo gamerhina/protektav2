@@ -32,14 +32,20 @@ class MahasiswaImport implements ToCollection, WithHeadingRow
             // Cek apakah mahasiswa sudah ada berdasarkan NPM
             $mahasiswa = Mahasiswa::where('npm', $row['npm'])->first();
 
+            // Jika tidak ditemukan berdasarkan NPM, cek berdasarkan Email (karena email harus unik)
+            if (!$mahasiswa && !empty($row['email'])) {
+                $mahasiswa = Mahasiswa::where('email', $row['email'])->first();
+            }
+
             if ($mahasiswa) {
                 // Jika sudah ada, update data
                 $mahasiswa->update([
                     'nama' => $row['nama'],
+                    'npm' => $row['npm'], // Update NPM juga jika yang ditemukan adalah emailnya
                     'email' => $row['email'],
                     'hp' => $row['hp'] ?? null,
                     'wa' => $row['wa'] ?? null,
-                    'pembimbing_akademik_id' => $paId, // Langsung gunakan hasil pencarian (bisa null jika di Excel kosong)
+                    'pembimbing_akademik_id' => $paId,
                 ]);
             } else {
                 // Jika belum ada, buat baru
