@@ -1895,7 +1895,7 @@ class ManagementController extends Controller
 
             return redirect()->route('admin.dosen.index')->with('success', 'Data dosen berhasil diimport!');
         } catch (\Exception $e) {
-            return redirect()->route('dosen.import.form')->with('error', 'Import gagal: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Import gagal: ' . $e->getMessage());
         }
     }
 
@@ -1923,7 +1923,7 @@ class ManagementController extends Controller
 
             return redirect()->route('admin.mahasiswa.index')->with('success', 'Data mahasiswa berhasil diimport!');
         } catch (\Exception $e) {
-            return redirect()->route('mahasiswa.import.form')->with('error', 'Import gagal: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Import gagal: ' . $e->getMessage());
         }
     }
 
