@@ -65,6 +65,7 @@
         /* Base Table Styles (to match TinyMCE Defaults) */
         table { border-collapse: collapse; width: 100%; }
         td, th { vertical-align: top; padding: 2px 4px; }
+        table p { margin: 0 !important; padding: 0 !important; line-height: 1.15 !important; white-space: pre-wrap; min-height: 1em; }
 
         .page-separator {
             height: 60px;

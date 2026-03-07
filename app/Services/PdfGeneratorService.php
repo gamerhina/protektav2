@@ -333,7 +333,6 @@ class PdfGeneratorService
                     .page-break + * { margin-top: 0 !important; }
                     .document-header + * { margin-top: 0 !important; }
                     .document-header-repeated + * { margin-top: 0 !important; }
-                    p:empty, p:blank { display: none !important; }
                 </style>
             </head>
             <body>
