@@ -47,10 +47,6 @@
                     </div>
                 </div>
 
-                <div id="tanggal_wrap" class="md:col-span-2">
-                    {{-- Dynamically injected or stay empty --}}
-                </div>
-                
                 {{-- Hidden Pemohon Wrap --}}
                 <div id="pemohon_wrap" class="hidden"></div>
 
@@ -233,7 +229,6 @@
             if (!jenisId) {
                 container.innerHTML = `<div class="md:col-span-2 text-sm text-gray-500 italic py-8 border border-dashed border-gray-200 rounded-xl text-center">Silakan pilih jenis surat untuk menampilkan formulir.</div>`;
                 if (pemohonWrap) pemohonWrap.innerHTML = '';
-                if (tanggalWrap) tanggalWrap.innerHTML = '';
                 if (infoContainer) infoContainer.classList.add('hidden');
                 return;
             }
@@ -255,23 +250,15 @@
             const fields = Array.isArray(jenis?.form_fields) ? jenis.form_fields : [];
 
             const pemohonField = fields.find((f) => f && typeof f === 'object' && f.type === 'pemohon');
-            const tanggalField = fields.find((f) => f && typeof f === 'object' && f.type === 'date');
-            
             const otherFields = fields.filter((f) => {
                 if (!f || typeof f !== 'object') return false;
                 if (f.type === 'pemohon') return false;
                 if (f.type === 'auto_no_surat') return false;
-                if (tanggalField && f.key === tanggalField.key && f.type === 'date') return false;
                 return true;
             });
 
             if (pemohonWrap) {
                 pemohonWrap.innerHTML = pemohonField ? renderPemohonField(pemohonField) : '';
-            }
-
-            if (tanggalWrap) {
-                tanggalWrap.innerHTML = tanggalField ? renderField(tanggalField, true) : '';
-                tanggalWrap.style.display = tanggalField ? 'block' : 'none';
             }
 
             let dynamicHtml = otherFields.map(f => renderField(f)).join('');
