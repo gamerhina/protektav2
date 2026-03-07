@@ -475,7 +475,7 @@
             `;
         }
 
-        if (field.type === 'checkbox') {
+        if (field.type === 'checkbox' || field.type === 'checklist_marker') {
             const options = Array.isArray(field.options) ? field.options : [];
             if (options.length) {
                 const items = options.map((o, idx) => `

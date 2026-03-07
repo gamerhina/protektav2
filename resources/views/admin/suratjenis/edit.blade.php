@@ -447,8 +447,9 @@
                     </div>
 
                     <p class="text-xs text-gray-500 mt-3">
-                        Catatan opsi untuk <strong>Select/Radio/Checkbox</strong>: isi per baris format <span class="font-mono">value|label</span>.
-                        Untuk <strong>File</strong>: isi ekstensi dipisah koma (contoh: <span class="font-mono">pdf,jpg,png</span>) dan max size dalam KB.
+                        Catatan opsi untuk <strong>Select/Radio/Checkbox/Checklist Marker</strong>: isi per baris format <span class="font-mono">value|label</span>.
+                        <br>Khusus <strong>Checklist Marker</strong>: tag <span class="font-mono">&lt;&lt;value&gt;&gt;</span> akan diganti dengan tanda <strong>✓</strong> jika dipilih.
+                        <br>Untuk <strong>File</strong>: isi ekstensi dipisah koma (contoh: <span class="font-mono">pdf,jpg,png</span>) dan max size dalam KB.
                     </p>
                 </div>
             </div>
@@ -477,6 +478,7 @@
             { value: 'select', label: 'Dropdown (Select)' },
             { value: 'radio', label: 'Radio Button' },
             { value: 'checkbox', label: 'Checklist (Checkbox)' },
+            { value: 'checklist_marker', label: 'Checklist (Marker Tag)' },
             { value: 'file', label: 'File Upload' },
             { value: 'table', label: 'Tabel Multi-Row' },
         ];
@@ -558,7 +560,7 @@
             pemohonWrap.classList.toggle('hidden', type !== 'pemohon');
         }
         if (optionsWrap) {
-            optionsWrap.classList.toggle('hidden', !['select','radio','checkbox'].includes(type));
+            optionsWrap.classList.toggle('hidden', !['select','radio','checkbox', 'checklist_marker'].includes(type));
         }
         if (tableWrap) {
             tableWrap.classList.toggle('hidden', type !== 'table');

@@ -241,7 +241,7 @@ class AdminSuratJenisController extends Controller
                 $field['pemohon_sources'] = $sources;
             }
 
-            if (in_array($type, ['select', 'radio', 'checkbox'], true)) {
+            if (in_array($type, ['select', 'radio', 'checkbox', 'checklist_marker'], true)) {
                 $optionsRaw = $item['options'] ?? [];
                 if (is_string($optionsRaw)) {
                     $optionsRaw = preg_split('/\r\n|\r|\n/', $optionsRaw) ?: [];

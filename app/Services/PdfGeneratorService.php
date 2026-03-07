@@ -692,12 +692,49 @@ class PdfGeneratorService
 
         // Custom fields from form data
         if (is_array($surat->data)) {
+            $formFields = $surat->jenis->form_fields ?? [];
+            $checklistKeys = [];
+            foreach ($formFields as $field) {
+                if (($field['type'] ?? '') === 'checklist_marker') {
+                    $opts = $field['options'] ?? [];
+                    foreach ($opts as $opt) {
+                        if (isset($opt['value'])) $checklistKeys[] = $opt['value'];
+                    }
+                }
+            }
+
             foreach ($surat->data as $key => $val) {
-                if (!is_array($val)) {
+                // Determine if this is a checklist marker field (user input is array of checked values)
+                if (is_array($val)) {
+                    // 1. Handle value as comma-separated string for the field's own key
+                    $data[$key] = implode(', ', $val);
+                    $normalizedKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($key)));
+                    $data[$normalizedKey] = $data[$key];
+
+                    // 2. Handle markers for each individual value within the array
+                    foreach ($val as $subVal) {
+                        if (is_string($subVal)) {
+                            // Set the raw value as key
+                            $data[$subVal] = "✓";
+                            // Also set the normalized version for matching <<tag>>
+                            $normalizedSubKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($subVal)));
+                            $data[$normalizedSubKey] = "✓";
+                        }
+                    }
+                } else {
                     $data[$key] = $val;
                     // Also provide a normalized key (lowercase and underscores)
-                    $normalizedKey = str_replace(' ', '_', strtolower($key));
-                    $data[$normalizedKey] = $val;
+                $normalizedKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($key)));
+                $data[$normalizedKey] = $val;
+                }
+            }
+
+            // For checklist markers that WERE NOT checked, ensure they are empty string (not showing the tag)
+            foreach ($checklistKeys as $ck) {
+                $normalizedCk = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($ck)));
+                if (!isset($data[$ck]) && !isset($data[$normalizedCk])) {
+                    $data[$ck] = "";
+                    $data[$normalizedCk] = "";
                 }
             }
         }

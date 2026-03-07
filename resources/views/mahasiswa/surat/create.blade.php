@@ -172,11 +172,23 @@
                             <option value="">Pilih</option>
                             ${optionsHtml}
                         </select>`;
-            } else if (field.type === 'checkbox') {
-                html += `<label class="flex items-center gap-2 text-sm text-gray-700 mt-1 cursor-pointer">
-                            <input type="checkbox" name="form_data[${key}]" value="1" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300 transition-all">
-                            <span>${label}</span>
-                        </label>`;
+            } else if (field.type === 'checkbox' || field.type === 'checklist_marker') {
+                const options = Array.isArray(field.options) ? field.options : [];
+                if (options.length > 0) {
+                    html += `<div class="space-y-2 mt-1">`;
+                    options.forEach(o => {
+                        html += `<label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                                    <input type="checkbox" name="form_data[${key}][]" value="${escapeHtml(o.value)}" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300 transition-all">
+                                    <span>${escapeHtml(o.label)}</span>
+                                </label>`;
+                    });
+                    html += `</div>`;
+                } else {
+                    html += `<label class="flex items-center gap-2 text-sm text-gray-700 mt-1 cursor-pointer">
+                                <input type="checkbox" name="form_data[${key}]" value="1" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300 transition-all">
+                                <span>${label}</span>
+                            </label>`;
+                }
             } else {
                 const inputType = field.type === 'number' ? 'number' : 'text';
 
