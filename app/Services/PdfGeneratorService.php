@@ -397,7 +397,7 @@ class PdfGeneratorService
                 } elseif ($tag === 'dosen_qr_signature') {
                     $url = \Illuminate\Support\Facades\URL::signedRoute('verify.surat.signature', [
                         'suratId' => $surat->id, 
-                        'type' => 'pemohon'
+                        'type' => 'dosen'
                     ]);
                 } elseif (str_ends_with($tag, '_qr_signature')) {
                     $roleCodeToMatch = str_replace('_qr_signature', '', $tag);
@@ -440,17 +440,17 @@ class PdfGeneratorService
 
                 if ($url) {
                     try {
-                        // Only shorten if it's a long local URL that hasn't been shortened yet
-                        if (str_contains($url, config('app.url')) && !str_contains($url, '/v/')) {
-                            $url = app(\App\Services\UrlShortenerService::class)->shorten($url);
-                        }
+                    // Shorten URL if it's not already a short URL
+                    if (!str_contains($url, '/v/')) {
+                        $url = app(\App\Services\UrlShortenerService::class)->shorten($url);
+                    }
                         
                         $options = new \chillerlan\QRCode\QROptions([
                             'version'      => \chillerlan\QRCode\QRCode::VERSION_AUTO,
                             'outputType'   => \chillerlan\QRCode\QRCode::OUTPUT_IMAGE_PNG,
                             'eccLevel'     => \chillerlan\QRCode\QRCode::ECC_L,
                             'imageBase64'  => true,
-                            'scale'        => 5,
+                            'scale'        => 10,
                             'quietzoneSize'=> 1,
                         ]);
                         $qrcode = (new \chillerlan\QRCode\QRCode($options))->render($url);

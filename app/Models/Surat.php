@@ -132,10 +132,9 @@ class Surat extends Model
      */
     public function getVerificationUrlAttribute(): string
     {
-        if (!$this->verification_token) {
-            return '';
-        }
         // Using the public verification route with a cryptographic signature
+        // We don't strictly need a separate token because the Laravel signed route 
+        // already includes a cryptographic signature to prevent tampering.
         $longUrl = \Illuminate\Support\Facades\URL::signedRoute('verify.surat', ['suratId' => $this->id]);
         return app(\App\Services\UrlShortenerService::class)->shorten($longUrl);
     }
