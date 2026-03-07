@@ -749,9 +749,18 @@ class PdfGeneratorService
                         }
                     }
                 } else {
-                    $data[$key] = $val;
+                    $formattedVal = $val;
+                    if ($fieldType === 'date' && !empty($val)) {
+                        try {
+                            $formattedVal = \Illuminate\Support\Carbon::parse($val)->translatedFormat('d F Y');
+                        } catch (\Exception $e) {
+                            $formattedVal = $val;
+                        }
+                    }
+
+                    $data[$key] = $formattedVal;
                     $normalizedKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower((string)$key)));
-                    $data[$normalizedKey] = $val;
+                    $data[$normalizedKey] = $formattedVal;
 
                     // Support marker for radio_marker type
                     if ($fieldType === 'radio_marker' && is_string($val) && $val !== '') {
