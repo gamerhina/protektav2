@@ -265,7 +265,7 @@
 @section('scripts')
 <script>
     const fieldTypes = [
-        { value: 'pemohon', label: 'Pemohon (Pilih Mahasiswa/Dosen)' },
+        { value: 'pemohon', label: 'Pemohon (Dropdown Mahasiswa/Dosen)' },
         { value: 'auto_no_surat', label: 'Nomor Surat (Auto)' },
         { value: 'date', label: 'Tanggal (Date)' },
         { value: 'text', label: 'Text' },
@@ -277,6 +277,7 @@
         { value: 'checkbox', label: 'Checklist (Checkbox)' },
         { value: 'checklist_marker', label: 'Checklist (Marker Tag)' },
         { value: 'file', label: 'File Upload' },
+        { value: 'table', label: 'Tabel Multi-Row' },
     ];
 
     function buildTypeOptions(selected) {
@@ -297,6 +298,9 @@
             : (data.options || '');
         const extensions = Array.isArray(data.extensions) ? data.extensions.join(',') : (data.extensions || '');
         const maxKb = data.max_kb || '';
+        const tableColumns = Array.isArray(data.columns)
+            ? data.columns.map(c => `${c.key}|${c.label}`).join('\n')
+            : (data.columns || '');
 
         const rulesCell = `
             <div class="space-y-2">
@@ -312,7 +316,15 @@
                     </label>
                 </div>
                 <div class="options-wrap ${['select','radio','checkbox', 'checklist_marker'].includes(type) ? '' : 'hidden'}">
-                    <textarea name="form_fields[${index}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label\nvalue2|label2">${options || ''}</textarea>
+                    <textarea name="form_fields[${index}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label
+value2|label2">${options || ''}</textarea>
+                </div>
+                <div class="table-wrap ${type === 'table' ? '' : 'hidden'}">
+                    <div class="text-xs text-gray-500 mb-1">Kolom Tabel</div>
+                    <textarea name="form_fields[${index}][columns]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="nama|Nama Lengkap
+nim|NIM
+jurusan|Jurusan">${tableColumns || ''}</textarea>
+                    <div class="text-xs text-gray-400 mt-1">Format: key|Label (satu kolom per baris)</div>
                 </div>
                 <div class="file-wrap ${type === 'file' ? '' : 'hidden'}">
                     <div class="grid grid-cols-1 gap-2">
@@ -323,6 +335,7 @@
                 <div class="text-xs text-gray-400" data-hint>
                     ${type === 'pemohon' ? 'Akan menghasilkan field Pemohon (pilih mahasiswa/dosen) pada form permohonan.' : ''}
                     ${type === 'auto_no_surat' ? 'Nomor surat otomatis mengikuti jenis surat.' : ''}
+                    ${type === 'table' ? 'Tabel dengan multiple rows yang bisa ditambah/hapus oleh user.' : ''}
                 </div>
             </div>
         `;
@@ -362,6 +375,7 @@
         const type = row.querySelector('.field-type')?.value;
         const pemohonWrap = row.querySelector('.pemohon-wrap');
         const optionsWrap = row.querySelector('.options-wrap');
+        const tableWrap = row.querySelector('.table-wrap');
         const fileWrap = row.querySelector('.file-wrap');
         const hint = row.querySelector('[data-hint]');
 
@@ -371,13 +385,16 @@
         if (optionsWrap) {
             optionsWrap.classList.toggle('hidden', !['select','radio','checkbox', 'checklist_marker'].includes(type));
         }
+        if (tableWrap) {
+            tableWrap.classList.toggle('hidden', type !== 'table');
+        }
         if (fileWrap) {
             fileWrap.classList.toggle('hidden', type !== 'file');
         }
         if (hint) {
             hint.textContent = type === 'pemohon'
                 ? 'Akan menghasilkan field Pemohon (pilih mahasiswa/dosen) pada form permohonan.'
-                : (type === 'auto_no_surat' ? 'Nomor surat otomatis mengikuti jenis surat.' : '');
+                : (type === 'auto_no_surat' ? 'Nomor surat otomatis mengikuti jenis surat.' : (type === 'table' ? 'Tabel dengan multiple rows yang bisa ditambah/hapus oleh user.' : ''));
         }
     }
 

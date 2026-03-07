@@ -377,6 +377,7 @@
                                                         'select' => 'Dropdown (Select)',
                                                         'radio' => 'Radio Button',
                                                         'checkbox' => 'Checklist (Checkbox)',
+                                                        'checklist_marker' => 'Checklist (Marker Tag)',
                                                         'file' => 'File Upload',
                                                         'table' => 'Tabel Multi-Row',
                                                     ] as $v => $lbl)
@@ -412,12 +413,15 @@
                                                             Dosen
                                                         </label>
                                                     </div>
-                                                    <div class="options-wrap {{ in_array($type, ['select','radio','checkbox'], true) ? '' : 'hidden' }}">
-                                                        <textarea name="form_fields[{{ $i }}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label\nvalue2|label2">{{ $optionsText }}</textarea>
+                                                    <div class="options-wrap {{ in_array($type, ['select','radio','checkbox', 'checklist_marker'], true) ? '' : 'hidden' }}">
+                                                        <textarea name="form_fields[{{ $i }}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label
+value2|label2">{{ $optionsText }}</textarea>
                                                     </div>
                                                     <div class="table-wrap {{ $type === 'table' ? '' : 'hidden' }}">
                                                         <div class="text-xs text-gray-500 mb-1">Kolom Tabel</div>
-                                                        <textarea name="form_fields[{{ $i }}][columns]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="nama|Nama Lengkap\nnim|NIM\njurusan|Jurusan">{{ $tableColumns }}</textarea>
+                                                        <textarea name="form_fields[{{ $i }}][columns]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="nama|Nama Lengkap
+nim|NIM
+jurusan|Jurusan">{{ $tableColumns }}</textarea>
                                                         <div class="text-xs text-gray-400 mt-1">Format: key|Label (satu kolom per baris)</div>
                                                     </div>
                                                     <div class="file-wrap {{ $type === 'file' ? '' : 'hidden' }}">
@@ -468,7 +472,7 @@
 <script>
     function buildTypeOptions(selected) {
         const types = [
-            { value: 'pemohon', label: 'Pemohon (Pilih Mahasiswa/Dosen)' },
+            { value: 'pemohon', label: 'Pemohon (Dropdown Mahasiswa/Dosen)' },
             { value: 'auto_no_surat', label: 'Nomor Surat (Auto)' },
             { value: 'date', label: 'Tanggal (Date)' },
             { value: 'text', label: 'Text' },
@@ -520,11 +524,14 @@
                             </label>
                         </div>
                         <div class="options-wrap hidden">
-                            <textarea name="form_fields[${index}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label\nvalue2|label2"></textarea>
+                            <textarea name="form_fields[${index}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label
+value2|label2"></textarea>
                         </div>
                         <div class="table-wrap hidden">
                             <div class="text-xs text-gray-500 mb-1">Kolom Tabel</div>
-                            <textarea name="form_fields[${index}][columns]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="nama|Nama Lengkap\nnim|NIM\njurusan|Jurusan"></textarea>
+                            <textarea name="form_fields[${index}][columns]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="nama|Nama Lengkap
+nim|NIM
+jurusan|Jurusan"></textarea>
                             <div class="text-xs text-gray-400 mt-1">Format: key|Label (satu kolom per baris)</div>
                         </div>
                         <div class="file-wrap hidden">
