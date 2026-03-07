@@ -693,32 +693,58 @@ class PdfGeneratorService
         // Custom fields from form data
         if (is_array($surat->data)) {
             $formFields = $surat->jenis->form_fields ?? [];
-            $checklistKeys = [];
+            
+            // 1. Initialize all possible checklist markers to empty strings
             foreach ($formFields as $field) {
                 if (($field['type'] ?? '') === 'checklist_marker') {
+                    $fieldKey = $field['key'] ?? '';
                     $opts = $field['options'] ?? [];
                     foreach ($opts as $opt) {
-                        if (isset($opt['value'])) $checklistKeys[] = $opt['value'];
+                        $optVal = $opt['value'] ?? '';
+                        if ($optVal !== '') {
+                            // Direct tag: <<value>>
+                            $data[$optVal] = '';
+                            $normOpt = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($optVal)));
+                            if ($normOpt) $data[$normOpt] = '';
+                            
+                            // Prefixed tag: <<fieldkey_value>>
+                            if ($fieldKey !== '') {
+                                $prefixKey = $fieldKey . '_' . $optVal;
+                                $data[$prefixKey] = '';
+                                $normPrefix = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($prefixKey)));
+                                if ($normPrefix) $data[$normPrefix] = '';
+                            }
+                        }
                     }
                 }
             }
 
+            // 2. Populate data with selected values
             foreach ($surat->data as $key => $val) {
-                // Determine if this is a checklist marker field (user input is array of checked values)
+                // Determine if this is a checklist marker field or multiple values
                 if (is_array($val)) {
-                    // 1. Handle value as comma-separated string for the field's own key
-                    $data[$key] = implode(', ', $val);
-                    $normalizedKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($key)));
-                    $data[$normalizedKey] = $data[$key];
+                    // Check if this field is a checklist_marker to handle markers
+                    $field = collect($formFields)->where('key', $key)->first();
+                    $isMarker = ($field['type'] ?? '') === 'checklist_marker';
 
-                    // 2. Handle markers for each individual value within the array
+                    // Comma separated list for the main field tag
+                    $data[$key] = implode(', ', $val);
+                    $normKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($key)));
+                    $data[$normKey] = $data[$key];
+
+                    // Individual value markers
                     foreach ($val as $subVal) {
                         if (is_string($subVal)) {
-                            // Set the raw value as key
+                            // Direct marker: <<value>> = ✓
                             $data[$subVal] = "✓";
-                            // Also set the normalized version for matching <<tag>>
-                            $normalizedSubKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($subVal)));
-                            $data[$normalizedSubKey] = "✓";
+                            $normSub = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($subVal)));
+                            if ($normSub) $data[$normSub] = "✓";
+
+                            // Prefixed marker: <<fieldkey_value>> = ✓
+                            $pSub = $key . '_' . $subVal;
+                            $data[$pSub] = "✓";
+                            $normPSub = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($pSub)));
+                            if ($normPSub) $data[$normPSub] = "✓";
                         }
                     }
                 } else {
