@@ -58,7 +58,7 @@
                     <h2 class="text-lg font-semibold text-gray-800 border-b pb-2 mb-4">Rincian Data</h2>
                 </div>
 
-                <div id="dynamic-fields" class="md:col-span-2 grid grid-cols-1 gap-5">
+                <div id="dynamic-fields" class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="text-sm text-gray-500 italic py-8 border border-dashed border-gray-200 rounded-xl text-center">
                         Silakan pilih jenis surat untuk menampilkan formulir.
                     </div>
@@ -113,9 +113,14 @@
 
             if (field.type === 'pemohon' || field.type === 'auto_no_surat') return '';
 
-            // Layout classes - All fields are full width (md:col-span-2)
+            // Layout classes: Specific keys like 'perihal' are full width
+            const isFullWidth = field.type === 'textarea' || 
+                                field.type === 'file' || 
+                                field.type === 'date' || 
+                                ['perihal', 'tujuan', 'isi'].includes(field.key);
+            
             const wrapperClass = isTop ? 'bg-white border border-gray-200 rounded-xl p-4 md:col-span-2' :
-                                'bg-white border border-gray-200 rounded-xl p-4 md:col-span-2';
+                                `bg-white border border-gray-200 rounded-xl p-4 ${isFullWidth ? 'md:col-span-2' : ''}`;
             
             let html = `<div class="${wrapperClass}">
                         <label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>`;
@@ -174,7 +179,19 @@
                         </label>`;
             } else {
                 const inputType = field.type === 'number' ? 'number' : 'text';
-                html += `<input type="${inputType}" name="form_data[${key}]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 outline-none transition-all" placeholder="${placeholderAttr}" ${requiredAttr}>`;
+
+                // Auto-fill Logic
+                let value = '';
+                const lowerKey = field.key.toLowerCase().replace(/<<|>>/g, ''); // Support both raw key and bracketed versions
+                if (['pemohon_nama', 'mahasiswa_nama'].includes(lowerKey)) {
+                    value = currentMahasiswa.nama || '';
+                } else if (['pemohon_nip_npm', 'mahasiswa_npm'].includes(lowerKey)) {
+                    value = currentMahasiswa.npm || '';
+                } else if (['pemohon_email', 'mahasiswa_email', 'surat_email'].includes(lowerKey)) {
+                    value = currentMahasiswa.email || '';
+                }
+
+                html += `<input type="${inputType}" name="form_data[${key}]" value="${escapeHtml(value)}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 outline-none transition-all" placeholder="${placeholderAttr}" ${requiredAttr}>`;
             }
 
             html += `</div>`;

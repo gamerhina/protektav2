@@ -48,7 +48,7 @@
                     </div>
 
                     <div id="pemohon_wrap"></div>
-                    <div id="tanggal_wrap"></div>
+                    <div id="tanggal_wrap" class="md:col-span-2"></div>
                 </div>
 
                 <div class="md:col-span-2">
@@ -211,10 +211,10 @@
         if (field.type === 'date') {
             const today = `{{ now()->timezone('Asia/Jakarta')->format('Y-m-d') }}`;
             return `
-                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                <div class="bg-white border border-gray-200 rounded-xl p-4 md:col-span-2">
                     <label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
                     <input type="date" name="form_data[${key}]" value="${today}"
-                        class="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 outline-none"
                         ${requiredAttr}
                         oninput="this.nextElementSibling.textContent = this.value ? new Intl.DateTimeFormat('id-ID',{day:'numeric',month:'long',year:'numeric'}).format(new Date(this.value)) : ''"
                     >

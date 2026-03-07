@@ -137,8 +137,8 @@ class SuratTemplate extends Model
         }
 
         $fields['Pemohon (Umum)'] = [
-            'pemohon_nama' => 'Nama Pemohon',
-            'pemohon_nip_npm' => 'ID Pemohon (NIP/NPM)',
+            'pemohon_nama' => 'Nama Pemohon (Auto-fill)',
+            'pemohon_nip_npm' => 'ID Pemohon / NIP / NPM (Auto-fill)',
             'pemohon_qr_signature' => 'QR Signature Pemohon',
             'pemohon_signature' => 'Image Signature Pemohon',
         ];

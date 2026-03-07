@@ -36,7 +36,7 @@
                     </div>
                 </div>
 
-                <div id="tanggal_wrap">
+                <div id="tanggal_wrap" class="md:col-span-2">
                     {{-- Dynamically injected or stay empty --}}
                 </div>
                 
@@ -106,9 +106,10 @@
             // Layout classes: Specific keys like 'perihal' are full width
             const isFullWidth = field.type === 'textarea' || 
                                 field.type === 'file' || 
-                                ['perihal', 'tujuan', 'isi'].includes(field.key);
+                                field.type === 'date' || 
+                                ['perihal', 'tujuan', 'isi', 'tgl'].includes(field.key);
             
-            const wrapperClass = isTop ? 'bg-white border border-gray-200 rounded-xl p-4' : 
+            const wrapperClass = isTop ? 'bg-white border border-gray-200 rounded-xl p-4 md:col-span-2' : 
                                 `bg-white border border-gray-200 rounded-xl p-4 ${isFullWidth ? 'md:col-span-2' : ''}`;
             
             let html = `<div class="${wrapperClass}">
@@ -185,7 +186,19 @@
                         </label>`;
             } else {
                 const inputType = field.type === 'number' ? 'number' : 'text';
-                html += `<input type="${inputType}" name="form_data[${key}]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 outline-none transition-all" placeholder="${placeholderAttr}" ${requiredAttr}>`;
+                
+                // Auto-fill Logic
+                let value = '';
+                const lowerKey = field.key.toLowerCase().replace(/<<|>>/g, ''); // Support both raw key and bracketed versions
+                if (['pemohon_nama', 'dosen_nama'].includes(lowerKey)) {
+                    value = currentDosen.nama || '';
+                } else if (['pemohon_nip_npm', 'dosen_nip'].includes(lowerKey)) {
+                    value = currentDosen.nip || '';
+                } else if (['pemohon_email', 'dosen_email', 'surat_email'].includes(lowerKey)) {
+                    value = currentDosen.email || '';
+                }
+
+                html += `<input type="${inputType}" name="form_data[${key}]" value="${escapeHtml(value)}" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 outline-none transition-all" placeholder="${placeholderAttr}" ${requiredAttr}>`;
             }
 
             html += `</div>`;

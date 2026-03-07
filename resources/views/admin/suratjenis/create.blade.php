@@ -139,12 +139,92 @@
                             <h2 class="text-lg font-semibold text-gray-800">Form Permohonan (Custom Fields)</h2>
                             <p class="text-sm text-gray-500">Tambahkan field sesuai kebutuhan: nama, jenis isian, placeholder, aturan, wajib/tidak.</p>
                         </div>
-                        <button type="button" id="add-field" class="btn-pill btn-pill-secondary">
-                            <i class="fas fa-plus"></i> Tambah Field
-                        </button>
+                        <div class="flex items-center gap-2">
+                             <!-- Variable Library Toggle Button -->
+                            <button type="button" 
+                                    onclick="toggleVariableLibrary()"
+                                    class="btn-pill btn-pill-info !py-1.5 !text-[10px] uppercase tracking-wider">
+                                <i class="fas fa-book"></i> Variable Library (Auto-fill)
+                            </button>
+
+                            <button type="button" id="add-field" class="btn-pill btn-pill-secondary">
+                                <i class="fas fa-plus"></i> Tambah Field
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="overflow-hidden border border-gray-100 rounded-2xl shadow-sm">
+                    <!-- Variable Library Inline Panel (Show/Hide) -->
+                    <div id="variable-library-panel" class="hidden mb-6 animate-in slide-in-from-top-4 duration-300">
+                        <div class="bg-slate-900 border border-slate-700 rounded-[2rem] overflow-hidden shadow-xl">
+                            <div class="p-4 bg-slate-800/50 border-b border-slate-700 flex justify-between items-center">
+                                <h4 class="text-xs font-bold text-indigo-400 uppercase tracking-widest flex items-center gap-2">
+                                    <i class="fas fa-magic"></i> Auto-fill Variable Library
+                                </h4>
+                                <button type="button" onclick="toggleVariableLibrary()" class="text-slate-400 hover:text-white">
+                                    <i class="fas fa-times text-xs"></i>
+                                </button>
+                            </div>
+                            <div class="p-5">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <!-- Profil Default -->
+                                    <div class="space-y-2">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Profil Default</div>
+                                        <div class="p-3 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 space-y-2.5">
+                                            <div class="flex justify-between items-center">
+                                                <code class="text-[11px] text-white font-black px-2 py-0.5 rounded bg-indigo-500/20">pemohon_nama</code>
+                                                <span class="text-[8px] text-indigo-300 font-bold uppercase">Nama</span>
+                                            </div>
+                                            <div class="flex justify-between items-center pt-2 border-t border-indigo-500/10">
+                                                <code class="text-[11px] text-white font-black px-2 py-0.5 rounded bg-indigo-500/20">pemohon_nip_npm</code>
+                                                <span class="text-[8px] text-indigo-300 font-bold uppercase">ID</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Dosen -->
+                                    <div class="space-y-2">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Spesifik Dosen</div>
+                                        <div class="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2.5">
+                                            <div class="flex justify-between items-center">
+                                                <code class="text-[11px] text-white font-black px-2 py-0.5 rounded bg-amber-500/20">dosen_nama</code>
+                                            </div>
+                                            <div class="flex justify-between items-center pt-2 border-t border-amber-500/10">
+                                                <code class="text-[11px] text-white font-black px-2 py-0.5 rounded bg-amber-500/20">dosen_nip</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Mahasiswa -->
+                                    <div class="space-y-2">
+                                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Spesifik Mhs</div>
+                                        <div class="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 space-y-2.5">
+                                            <div class="flex justify-between items-center">
+                                                <code class="text-[11px] text-white font-black px-2 py-0.5 rounded bg-emerald-500/20">mahasiswa_nama</code>
+                                            </div>
+                                            <div class="flex justify-between items-center pt-2 border-t border-emerald-500/10">
+                                                <code class="text-[11px] text-white font-black px-2 py-0.5 rounded bg-emerald-500/20">mahasiswa_npm</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 p-4 bg-indigo-500/10 border border-indigo-400/30 rounded-2xl text-[11px] text-white shadow-inner">
+                                    <div class="flex gap-3 items-center">
+                                        <div class="w-6 h-6 rounded-full bg-indigo-500 flex items-center justify-center text-white shrink-0">
+                                            <i class="fas fa-info text-[10px]"></i>
+                                        </div>
+                                        <span>Copy salah satu <b class="text-indigo-300">Key</b> di atas dan masukkan ke dalam kolom <b>Key</b> yang ada di tabel form permohonan di bawah.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <script>
+                        function toggleVariableLibrary() {
+                            const panel = document.getElementById('variable-library-panel');
+                            panel.classList.toggle('hidden');
+                        }
+                    </script>
+
+                    <div class="overflow-x-auto border border-gray-100 rounded-2xl shadow-sm">
                         <table class="min-w-full divide-y divide-gray-200">
                             <thead>
                                 <tr>
