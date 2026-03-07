@@ -246,8 +246,8 @@
                         </table>
                     </div>
 
-                        Catatan opsi untuk <strong>Select/Radio/Checkbox/Checklist Marker</strong>: isi per baris format <span class="font-mono">value|label</span> (contoh: <span class="font-mono">mhs|Mahasiswa</span>).
-                        <br>Khusus <strong>Checklist Marker</strong>: tag <span class="font-mono">&lt;&lt;value&gt;&gt;</span> akan diganti dengan tanda <strong>✓</strong> jika dipilih.
+                        Catatan opsi untuk <strong>Select/Radio/Checkbox/Checklist Marker/Radio Marker</strong>: isi per baris format <span class="font-mono">value|label</span> (contoh: <span class="font-mono">mhs|Mahasiswa</span>).
+                        <br>Khusus <strong>Checklist Marker / Radio Marker</strong>: tag <span class="font-mono">&lt;&lt;value&gt;&gt;</span> akan diganti dengan tanda <strong>✓</strong> jika dipilih.
                         <br>Untuk <strong>File</strong>: isi ekstensi dipisah koma (contoh: <span class="font-mono">pdf,jpg,png</span>) dan max size dalam KB.
                     </p>
                 </div>
@@ -274,6 +274,7 @@
         { value: 'number', label: 'Number' },
         { value: 'select', label: 'Dropdown (Select)' },
         { value: 'radio', label: 'Radio Button' },
+        { value: 'radio_marker', label: 'Radio Marker Tag' },
         { value: 'checkbox', label: 'Checklist (Checkbox)' },
         { value: 'checklist_marker', label: 'Checklist (Marker Tag)' },
         { value: 'file', label: 'File Upload' },
@@ -315,7 +316,7 @@
                         Dosen
                     </label>
                 </div>
-                <div class="options-wrap ${['select','radio','checkbox', 'checklist_marker'].includes(type) ? '' : 'hidden'}">
+                <div class="options-wrap ${['select','radio','checkbox', 'checklist_marker', 'radio_marker'].includes(type) ? '' : 'hidden'}">
                     <textarea name="form_fields[${index}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label
 value2|label2">${options || ''}</textarea>
                 </div>
@@ -383,7 +384,7 @@ jurusan|Jurusan">${tableColumns || ''}</textarea>
             pemohonWrap.classList.toggle('hidden', type !== 'pemohon');
         }
         if (optionsWrap) {
-            optionsWrap.classList.toggle('hidden', !['select','radio','checkbox', 'checklist_marker'].includes(type));
+            optionsWrap.classList.toggle('hidden', !['select','radio','checkbox', 'checklist_marker', 'radio_marker'].includes(type));
         }
         if (tableWrap) {
             tableWrap.classList.toggle('hidden', type !== 'table');

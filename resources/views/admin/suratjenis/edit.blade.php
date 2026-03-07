@@ -376,6 +376,7 @@
                                                         'number' => 'Number',
                                                         'select' => 'Dropdown (Select)',
                                                         'radio' => 'Radio Button',
+                                                        'radio_marker' => 'Radio Marker Tag',
                                                         'checkbox' => 'Checklist (Checkbox)',
                                                         'checklist_marker' => 'Checklist (Marker Tag)',
                                                         'file' => 'File Upload',
@@ -413,7 +414,7 @@
                                                             Dosen
                                                         </label>
                                                     </div>
-                                                    <div class="options-wrap {{ in_array($type, ['select','radio','checkbox', 'checklist_marker'], true) ? '' : 'hidden' }}">
+                                                    <div class="options-wrap {{ in_array($type, ['select','radio','checkbox', 'checklist_marker', 'radio_marker'], true) ? '' : 'hidden' }}">
                                                         <textarea name="form_fields[{{ $i }}][options]" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md text-xs" placeholder="value|label
 value2|label2">{{ $optionsText }}</textarea>
                                                     </div>
@@ -451,8 +452,8 @@ jurusan|Jurusan">{{ $tableColumns }}</textarea>
                     </div>
 
                     <p class="text-xs text-gray-500 mt-3">
-                        Catatan opsi untuk <strong>Select/Radio/Checkbox/Checklist Marker</strong>: isi per baris format <span class="font-mono">value|label</span>.
-                        <br>Khusus <strong>Checklist Marker</strong>: tag <span class="font-mono">&lt;&lt;value&gt;&gt;</span> akan diganti dengan tanda <strong>✓</strong> jika dipilih.
+                        Catatan opsi untuk <strong>Select/Radio/Checkbox/Checklist Marker/Radio Marker</strong>: isi per baris format <span class="font-mono">value|label</span>.
+                        <br>Khusus <strong>Checklist Marker / Radio Marker</strong>: tag <span class="font-mono">&lt;&lt;value&gt;&gt;</span> akan diganti dengan tanda <strong>✓</strong> jika dipilih.
                         <br>Untuk <strong>File</strong>: isi ekstensi dipisah koma (contoh: <span class="font-mono">pdf,jpg,png</span>) dan max size dalam KB.
                     </p>
                 </div>
@@ -481,6 +482,7 @@ jurusan|Jurusan">{{ $tableColumns }}</textarea>
             { value: 'number', label: 'Number' },
             { value: 'select', label: 'Dropdown (Select)' },
             { value: 'radio', label: 'Radio Button' },
+            { value: 'radio_marker', label: 'Radio Marker Tag' },
             { value: 'checkbox', label: 'Checklist (Checkbox)' },
             { value: 'checklist_marker', label: 'Checklist (Marker Tag)' },
             { value: 'file', label: 'File Upload' },
@@ -567,7 +569,7 @@ jurusan|Jurusan"></textarea>
             pemohonWrap.classList.toggle('hidden', type !== 'pemohon');
         }
         if (optionsWrap) {
-            optionsWrap.classList.toggle('hidden', !['select','radio','checkbox', 'checklist_marker'].includes(type));
+            optionsWrap.classList.toggle('hidden', !['select','radio','checkbox', 'checklist_marker', 'radio_marker'].includes(type));
         }
         if (tableWrap) {
             tableWrap.classList.toggle('hidden', type !== 'table');

@@ -694,13 +694,14 @@ class PdfGeneratorService
         if (is_array($surat->data)) {
             $formFields = $surat->jenis->form_fields ?? [];
             
-            // 1. Initialize all possible checklist markers to empty strings
+            // 1. Initialize all possible markers for checklist_marker and radio_marker to empty strings
             foreach ($formFields as $field) {
-                if (($field['type'] ?? '') === 'checklist_marker') {
+                $type = $field['type'] ?? '';
+                if ($type === 'checklist_marker' || $type === 'radio_marker') {
                     $fieldKey = $field['key'] ?? '';
                     $opts = $field['options'] ?? [];
                     foreach ($opts as $opt) {
-                        $optVal = $opt['value'] ?? '';
+                        $optVal = (string)($opt['value'] ?? '');
                         if ($optVal !== '') {
                             // Direct tag: <<value>>
                             $data[$optVal] = '';
@@ -719,48 +720,52 @@ class PdfGeneratorService
                 }
             }
 
-            // 2. Populate data with selected values
+            // 2. Populate data with selected values and set markers
             foreach ($surat->data as $key => $val) {
-                // Determine if this is a checklist marker field or multiple values
-                if (is_array($val)) {
-                    // Check if this field is a checklist_marker to handle markers
-                    $field = collect($formFields)->where('key', $key)->first();
-                    $isMarker = ($field['type'] ?? '') === 'checklist_marker';
+                $field = collect($formFields)->where('key', $key)->first();
+                $fieldType = $field['type'] ?? '';
 
-                    // Comma separated list for the main field tag
+                if (is_array($val)) {
+                    // Handle list for the main field tag
                     $data[$key] = implode(', ', $val);
                     $normKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($key)));
                     $data[$normKey] = $data[$key];
 
-                    // Individual value markers
-                    foreach ($val as $subVal) {
-                        if (is_string($subVal)) {
-                            // Direct marker: <<value>> = ✓
-                            $data[$subVal] = "✓";
-                            $normSub = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($subVal)));
-                            if ($normSub) $data[$normSub] = "✓";
+                    // Individual value markers for checklist_marker
+                    if ($fieldType === 'checklist_marker') {
+                        foreach ($val as $subVal) {
+                            if (is_string($subVal) && $subVal !== '') {
+                                // Direct marker: <<value>> = ✓
+                                $data[$subVal] = "✓";
+                                $normSub = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($subVal)));
+                                if ($normSub) $data[$normSub] = "✓";
 
-                            // Prefixed marker: <<fieldkey_value>> = ✓
-                            $pSub = $key . '_' . $subVal;
-                            $data[$pSub] = "✓";
-                            $normPSub = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($pSub)));
-                            if ($normPSub) $data[$normPSub] = "✓";
+                                // Prefixed marker: <<fieldkey_value>> = ✓
+                                $pSub = $key . '_' . $subVal;
+                                $data[$pSub] = "✓";
+                                $normPSub = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($pSub)));
+                                if ($normPSub) $data[$normPSub] = "✓";
+                            }
                         }
                     }
                 } else {
                     $data[$key] = $val;
-                    // Also provide a normalized key (lowercase and underscores)
-                $normalizedKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($key)));
-                $data[$normalizedKey] = $val;
-                }
-            }
+                    $normalizedKey = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower((string)$key)));
+                    $data[$normalizedKey] = $val;
 
-            // For checklist markers that WERE NOT checked, ensure they are empty string (not showing the tag)
-            foreach ($checklistKeys as $ck) {
-                $normalizedCk = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($ck)));
-                if (!isset($data[$ck]) && !isset($data[$normalizedCk])) {
-                    $data[$ck] = "";
-                    $data[$normalizedCk] = "";
+                    // Support marker for radio_marker type
+                    if ($fieldType === 'radio_marker' && is_string($val) && $val !== '') {
+                        // Direct marker: <<value>> = ✓
+                        $data[$val] = "✓";
+                        $normVal = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($val)));
+                        if ($normVal) $data[$normVal] = "✓";
+
+                        // Prefixed marker: <<fieldkey_value>> = ✓
+                        $pVal = $key . '_' . $val;
+                        $data[$pVal] = "✓";
+                        $normPVal = preg_replace('/[^a-z0-9_]/', '', str_replace([' ', '.'], '_', strtolower($pVal)));
+                        if ($normPVal) $data[$normPVal] = "✓";
+                    }
                 }
             }
         }

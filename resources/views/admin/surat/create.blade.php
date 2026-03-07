@@ -475,6 +475,36 @@
             `;
         }
 
+        if (field.type === 'select') {
+            const options = Array.isArray(field.options) ? field.options : [];
+            const optionsHtml = options.map(o => `<option value="${escapeHtml(o.value)}">${escapeHtml(o.label)}</option>`).join('');
+            return `
+                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">${label}</label>
+                    <select name="form_data[${key}]" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-1 focus:ring-blue-500 outline-none" ${requiredAttr}>
+                        <option value="">Pilih</option>
+                        ${optionsHtml}
+                    </select>
+                </div>
+            `;
+        }
+
+        if (field.type === 'radio' || field.type === 'radio_marker') {
+            const options = Array.isArray(field.options) ? field.options : [];
+            const items = options.map((o) => `
+                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="radio" name="form_data[${key}]" value="${escapeHtml(o.value)}" class="w-4 h-4 text-blue-600 focus:ring-blue-500 border-gray-300 transition-all" ${requiredAttr}>
+                    <span>${escapeHtml(o.label)}</span>
+                </label>
+            `).join('');
+            return `
+                <div class="bg-white border border-gray-200 rounded-xl p-4">
+                    <div class="text-sm font-medium text-gray-700 mb-2">${label}</div>
+                    <div class="space-y-2">${items}</div>
+                </div>
+            `;
+        }
+
         if (field.type === 'checkbox' || field.type === 'checklist_marker') {
             const options = Array.isArray(field.options) ? field.options : [];
             if (options.length) {
