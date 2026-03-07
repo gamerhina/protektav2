@@ -306,6 +306,54 @@ class MahasiswaSuratController extends Controller
     }
 
     /**
+     * Preview PDF with wrapper for Mahasiswa
+     */
+    public function previewPdf(Request $request, Surat $surat)
+    {
+        $mahasiswa = Auth::guard('mahasiswa')->user();
+
+        $isOwner = (int) $surat->pemohon_mahasiswa_id === (int) $mahasiswa->id;
+        $isTarget = (int) $surat->mahasiswa_id === (int) $mahasiswa->id;
+
+        if (!$isOwner && !$isTarget) {
+            abort(403);
+        }
+
+        if ($surat->status === 'ditolak') {
+            return response('Dokumen tidak dapat diakses because pengajuan ditolak.', 403);
+        }
+
+        // Default to wrapper view unless raw stream is requested
+        if ($request->input('mode') !== 'stream') {
+            return view('shared.surat.preview-wrapper', compact('surat'));
+        }
+
+        // Raw Stream Logic
+        if ($surat->jenis?->is_uploaded) {
+            $path = $surat->generated_file_path ?: $surat->uploaded_pdf_path;
+            if (!$path || !Storage::disk('uploads')->exists($path)) {
+                return back()->with('error', 'Berkas PDF tidak ditemukan.');
+            }
+            
+            return response()->file(Storage::disk('uploads')->path($path), [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="preview_surat_' . ($surat->no_surat ?? $surat->id) . '.pdf"',
+                'Cache-Control' => 'no-cache, no-store, must-revalidate',
+                'Pragma' => 'no-cache',
+                'Expires' => '0',
+            ]);
+        }
+        
+        $pdfService = app(\App\Services\PdfGeneratorService::class);
+        try {
+            $pdf = $pdfService->generateSuratPdf($surat);
+            return $pdf->stream('preview_surat_' . ($surat->no_surat ?? $surat->id) . '.pdf');
+        } catch (\Exception $e) {
+            return response('Gagal memproses pratinjau: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Preview HTML template for uploaded letter types
      */
     public function previewHtml(Request $request, Surat $surat, ?SuratTemplate $template = null)

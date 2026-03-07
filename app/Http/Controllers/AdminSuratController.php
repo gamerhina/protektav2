@@ -644,10 +644,10 @@ public function previewHtml(Request $request, Surat $surat, ?SuratTemplate $temp
         $pdfService = app(\App\Services\PdfGeneratorService::class);
         $previewHtml = $pdfService->generateSuratHtml($surat, $template);
 
-        $backUrl = route('admin.surat.show', $surat);
+            $backUrl = route('admin.surat.show', $surat);
         $downloadUrl = route('admin.surat.download', $surat);
 
-        return view('admin.surat.preview-html', compact('surat', 'previewHtml', 'backUrl', 'downloadUrl', 'template'));
+        return view('shared.surat.preview-html', compact('surat', 'previewHtml', 'backUrl', 'downloadUrl', 'template'));
     }
 
     /**

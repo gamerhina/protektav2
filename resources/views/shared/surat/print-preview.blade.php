@@ -62,25 +62,9 @@
             margin: 20px 0;
             height: 0;
         }
-        /* Fix User Alignment Issues */
+        /* Base Table Styles (to match TinyMCE Defaults) */
         table { border-collapse: collapse; width: 100%; }
-        td, th { 
-            vertical-align: top; 
-            padding: 2px 4px !important; 
-            line-height: 1.15 !important; 
-            height: auto !important;
-        }
-        tr { 
-            height: auto !important; 
-        }
-        /* Aggressive Reset */
-        p, li, div, h1, h2, h3, h4, h5, h6 { 
-            margin: 0 !important; 
-            padding: 0 !important;
-            line-height: 1.15 !important; 
-        }
-        p:empty { display: none; }
-        ul, ol { margin: 0; padding-left: 1.5em !important; }
+        td, th { vertical-align: top; padding: 2px 4px; }
 
         .page-separator {
             height: 60px;

@@ -301,6 +301,7 @@ Route::middleware(['auth:dosen', 'notifications'])->prefix('dosen')->name('dosen
     Route::get('/surat/create', [DosenSuratController::class, 'create'])->name('surat.create');
     Route::get('/surat/{surat}', [DosenSuratController::class, 'show'])->whereNumber('surat')->name('surat.show');
     Route::get('/surat/{surat}/download', [DosenSuratController::class, 'downloadPdf'])->whereNumber('surat')->name('surat.download');
+    Route::get('/surat/{surat}/preview', [DosenSuratController::class, 'previewPdf'])->whereNumber('surat')->name('surat.preview');
     Route::get('/surat/{surat}/preview-html/{template?}', [DosenSuratController::class, 'previewHtml'])->whereNumber('surat')->name('surat.preview-html');
     Route::get('/surat/{surat}/download-html', [DosenSuratController::class, 'downloadHtml'])->whereNumber('surat')->name('surat.download-html');
     Route::put('/surat/{surat}', [DosenSuratController::class, 'update'])->whereNumber('surat')->name('surat.update');
@@ -348,6 +349,7 @@ Route::middleware(['auth:mahasiswa', 'notifications'])->prefix('mahasiswa')->nam
     Route::post('/surat', [App\Http\Controllers\MahasiswaSuratController::class, 'store'])->name('surat.store');
     Route::get('/surat/{surat}', [App\Http\Controllers\MahasiswaSuratController::class, 'show'])->whereNumber('surat')->name('surat.show');
     Route::get('/surat/{surat}/download', [App\Http\Controllers\MahasiswaSuratController::class, 'downloadPdf'])->whereNumber('surat')->name('surat.download');
+    Route::get('/surat/{surat}/preview', [App\Http\Controllers\MahasiswaSuratController::class, 'previewPdf'])->whereNumber('surat')->name('surat.preview');
     Route::get('/surat/{surat}/preview-html/{template?}', [App\Http\Controllers\MahasiswaSuratController::class, 'previewHtml'])->whereNumber('surat')->name('surat.preview-html');
     Route::get('/surat/{surat}/download-html', [App\Http\Controllers\MahasiswaSuratController::class, 'downloadHtml'])->whereNumber('surat')->name('surat.download-html');
     Route::delete('/surat/{surat}', [App\Http\Controllers\MahasiswaSuratController::class, 'destroy'])->whereNumber('surat')->name('surat.destroy');

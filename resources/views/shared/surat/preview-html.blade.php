@@ -354,25 +354,10 @@
                         border-radius: 20px;
                         background: #f8fafc;
                     }
-                    /* Fix User Alignment Issues */
+
+                    /* Base Table Styles (to match TinyMCE Defaults) */
                     table { border-collapse: collapse; width: 100%; }
-                    td, th { 
-                        vertical-align: top; 
-                        padding: 2px 4px !important; 
-                        line-height: 1.15 !important; 
-                        height: auto !important;
-                    }
-                    tr { 
-                        height: auto !important; 
-                    }
-                    /* Aggressive Reset */
-                    p, li, div, h1, h2, h3, h4, h5, h6 { 
-                        margin: 0 !important; 
-                        padding: 0 !important;
-                        line-height: 1.15 !important; 
-                    }
-                    p:empty { display: none; }
-                    ul, ol { margin: 0; padding-left: 1.5em !important; }
+                    td, th { vertical-align: top; padding: 2px 4px; }
                 </style>
             </head>
             <body>
@@ -400,7 +385,71 @@
 
         const doc = frame.contentDocument || frame.contentWindow.document;
         doc.open();
-        doc.write(previewHtml);
+        doc.write(`
+            <!DOCTYPE html>
+            <html>
+                <head>
+                    <style>
+                    html {
+                        background: white;
+                    }
+                    body { 
+                        font-family: 'Times New Roman', Times, serif; 
+                        font-size: 12pt; 
+                        background: white; 
+                        margin: 0 auto; 
+                        width: 21cm;
+                        min-height: 29.7cm;
+                        padding: 1.5cm;
+                        box-sizing: border-box;
+                    }
+                    .document-preview {
+                        background: transparent;
+                        margin: 0;
+                        width: 100%;
+                        padding: 0;
+                        box-shadow: none;
+                        border: none;
+                        box-sizing: border-box;
+                        display: block;
+                        position: relative;
+                    }
+                    .page-break { 
+                        page-break-after: always; 
+                        margin: 10px 0 !important;
+                        position: relative;
+                        height: 1px !important;
+                        border-top: 1px dashed #cbd5e1 !important;
+                        display: block !important;
+                        clear: both;
+                    }
+                    .page-break::after {
+                        content: 'BATAS HALAMAN';
+                        position: absolute;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: white;
+                        color: #94a3b8;
+                        padding: 2px 12px;
+                        font-size: 10px;
+                        font-weight: bold;
+                        border: 1px solid #e2e8f0;
+                        border-radius: 20px;
+                        white-space: nowrap;
+                    }
+                    .page-separator { display: none; }
+
+                    /* Base Table Styles (to match TinyMCE Defaults) */
+                    table { border-collapse: collapse; width: 100%; }
+                    td, th { vertical-align: top; padding: 2px 4px; }
+                    </style>
+                </head>
+                <body>
+                    ${previewHtml}
+                </body>
+            </html>
+        `);
         doc.close();
     });
     @endif

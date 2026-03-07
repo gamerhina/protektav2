@@ -23,12 +23,6 @@
                 </form>
             @endif
 
-            @if(($surat->jenis->allow_download ?? true) && $surat->status === 'selesai')
-                <a href="{{ route('dosen.surat.download', $surat) }}" download data-no-ajax class="btn-pill btn-pill-success !no-underline flex items-center gap-2 shadow-lg shadow-green-100">
-                    <i class="fas fa-file-download"></i> Unduh PDF TTD
-                </a>
-            @endif
-            
             <a href="{{ route('dosen.surat.index') }}" class="btn-pill btn-pill-secondary !no-underline">
                 <i class="fas fa-arrow-left mr-1"></i> Kembali
             </a>
@@ -253,28 +247,40 @@
             <!-- Preview Actions -->
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <div class="p-5 border-b border-gray-50 bg-gray-50/50">
-                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider">Preview & Cetak</h3>
+                    <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wider">PREVIEW DAN CETAK SURAT</h3>
                 </div>
                 <div class="p-6 space-y-4">
                     @php
                         $templates = $surat->jenis?->templates()->where('aktif', true)->get() ?? collect();
                     @endphp
                     
-                    @if($surat->status === 'selesai' || ($surat->status === 'dikirim' && $surat->jenis?->is_uploaded))
-                        @if($surat->jenis?->is_uploaded)
-                             <a href="{{ route('dosen.surat.download', $surat) }}" download data-no-ajax class="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all">
-                                <i class="fas fa-file-pdf"></i> Unduh PDF TTD
-                            </a>
-                        @endif
+                    @if($surat->status !== 'ditolak')
+                        @if($surat->status === 'selesai' || ($surat->status === 'dikirim' && $surat->jenis?->is_uploaded))
+                            @if($surat->jenis?->is_uploaded)
+                                 <a href="{{ route('dosen.surat.preview', $surat) }}" target="_blank" class="w-full py-3 rounded-xl bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-emerald-700 shadow-lg shadow-emerald-100 transition-all">
+                                    <i class="fas fa-file-pdf"></i> Pratinjau & Cetak PDF TTD
+                                </a>
+                            @endif
 
-                        @foreach($templates as $template)
-                             <a href="{{ route('dosen.surat.preview-html', ['surat' => $surat, 'template' => $template]) }}" target="_blank" class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">
-                                <i class="fas fa-eye"></i> Pratinjau {{ $template->nama }}
-                            </a>
-                        @endforeach
+                            @foreach($templates as $template)
+                                 <a href="{{ route('dosen.surat.preview-html', ['surat' => $surat, 'template' => $template]) }}" target="_blank" class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">
+                                    <i class="fas fa-eye"></i> Pratinjau & Cetak {{ $template->nama }}
+                                </a>
+                            @endforeach
+
+                            @if(!$surat->jenis?->is_uploaded && $templates->isEmpty())
+                                <a href="{{ route('dosen.surat.preview-html', $surat) }}" target="_blank" class="w-full py-3 rounded-xl bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all">
+                                    <i class="fas fa-eye"></i> Pratinjau & Cetak Surat
+                                </a>
+                            @endif
+                        @else
+                            <div class="p-4 bg-gray-50 text-gray-500 border border-gray-100 rounded-xl text-[10px] font-medium text-center">
+                                <i class="fas fa-lock mr-2"></i> Tersedia setelah status "Selesai"
+                            </div>
+                        @endif
                     @else
-                        <div class="p-4 bg-gray-50 text-gray-500 border border-gray-100 rounded-xl text-[10px] font-medium text-center">
-                            <i class="fas fa-lock mr-2"></i> Tersedia setelah status "Selesai"
+                        <div class="p-4 bg-red-50 text-red-600 border border-red-100 rounded-xl text-[10px] font-medium text-center">
+                            <i class="fas fa-ban mr-1"></i> Pengajuan Ditolak
                         </div>
                     @endif
                 </div>
