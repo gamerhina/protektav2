@@ -1121,7 +1121,7 @@
                         <li>
                             <a href="{{ route('dosen.mahasiswa.index', ['filter' => 'pa']) }}"
                                 class="sidebar-nav-link {{ request('filter') === 'pa' ? 'is-active' : '' }}">
-                                <i class="fas fa-user-check"></i> Mhs. Bimbingan Saya
+                                <i class="fas fa-user-check"></i> Mhs. Bimb. Akademik
                             </a>
                         </li>
                         <li>
@@ -1481,8 +1481,7 @@
             const currentSearch = window.location.search;
             const current = currentPath + currentSearch;
 
-            let best = null;
-            let bestLen = -1;
+            let bestMatchesQuery = false;
 
             links.forEach((a) => {
                 try {
@@ -1490,15 +1489,19 @@
                     if (u.origin !== window.location.origin) return;
 
                     const linkPath = u.pathname.replace(/\/+$/, '') || '/';
-                    const link = linkPath + (u.search || '');
+                    const linkQuery = u.search || '';
+                    const linkFull = linkPath + linkQuery;
 
-                    if (link === current && linkPath.length > bestLen) {
+                    // Exact match (including query params)
+                    if (linkFull === current) {
                         best = a;
                         bestLen = linkPath.length;
+                        bestMatchesQuery = true;
                         return;
                     }
 
-                    if (currentPath !== '/' && linkPath !== '/' && currentPath.startsWith(linkPath) && linkPath.length > bestLen) {
+                    // Path prefix match - only if we haven't found an exact match with query yet
+                    if (!bestMatchesQuery && currentPath !== '/' && linkPath !== '/' && currentPath.startsWith(linkPath) && linkPath.length > bestLen) {
                         best = a;
                         bestLen = linkPath.length;
                     }

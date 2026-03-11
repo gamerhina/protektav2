@@ -87,6 +87,11 @@ Silakan lengkapi borang penilaian untuk seminar ini.
 Jika Anda memiliki pertanyaan lebih lanjut, silakan hubungi administrator sistem.
 </x-mail::subcopy>
 
-Thanks,<br>
-{{ config('app.name') }}
+@php
+    $brandingSettings = \App\Models\LandingPageSetting::first();
+    $appName = optional($brandingSettings)->app_name ?? config('app.name');
+@endphp
+
+Regards,<br>
+Admin {{ $appName }}
 </x-mail::message>

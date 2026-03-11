@@ -5,13 +5,14 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 
 use App\Models\Surat;
 
 class SuratStatusUpdatedNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     public $surat;
     public $previousStatus;
@@ -62,7 +63,7 @@ class SuratStatusUpdatedNotification extends Notification
             $greeting .= 'Admin';
         }
 
-        $mailMessage = (new MailMessage)
+        $mailMessage = $this->newMailMessage()
             ->subject($subject)
             ->greeting($greeting)
             ->line('Status permohonan surat telah diperbarui.')

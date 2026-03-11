@@ -1,0 +1,2 @@
+﻿ = (Get-Content -Path 'c:\laragon\www\protekta-v2\app\Http\Controllers\ApprovalStampingController.php' -Raw);  = .Replace('' = Auth::guard(''admin'')->check();'', '' = Auth::guard(''admin'')->check();
+                   = Auth::guard(''dosen'')->user();''); Set-Content -Path 'c:\laragon\www\protekta-v2\app\Http\Controllers\ApprovalStampingController.php' -Value 

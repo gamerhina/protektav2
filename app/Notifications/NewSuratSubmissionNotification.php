@@ -5,11 +5,12 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 
 class NewSuratSubmissionNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     /**
      * Create a new notification instance.
@@ -39,7 +40,7 @@ class NewSuratSubmissionNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return $this->newMailMessage()
             ->subject('Permohonan Surat Baru: ' . $this->surat->jenis->nama)
             ->line('Ada permohonan surat baru yang perlu ditinjau.')
             ->line('Pemohon: ' . ($this->surat->pemohonDosen->nama ?? $this->surat->pemohonMahasiswa->nama ?? 'Unknown'))

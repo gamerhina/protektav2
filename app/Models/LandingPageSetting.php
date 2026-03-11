@@ -65,22 +65,22 @@ class LandingPageSetting extends Model
 
     public function getLogoUrlAttribute(): ?string
     {
-        return $this->logo_path ? Storage::disk('uploads')->url($this->logo_path) : null;
+        return $this->logo_path ? url(Storage::disk('uploads')->url($this->logo_path)) : null;
     }
 
     public function getFaviconUrlAttribute(): ?string
     {
-        return $this->favicon_path ? Storage::disk('uploads')->url($this->favicon_path) : null;
+        return $this->favicon_path ? url(Storage::disk('uploads')->url($this->favicon_path)) : null;
     }
 
     public function getLoginBackgroundUrlAttribute(): ?string
     {
-        return $this->login_background_path ? Storage::disk('uploads')->url($this->login_background_path) : null;
+        return $this->login_background_path ? url(Storage::disk('uploads')->url($this->login_background_path)) : null;
     }
 
     public function getLandingBackgroundUrlAttribute(): ?string
     {
-        return $this->landing_background_path ? Storage::disk('uploads')->url($this->landing_background_path) : null;
+        return $this->landing_background_path ? url(Storage::disk('uploads')->url($this->landing_background_path)) : null;
     }
 
     public function getLandingBackgroundSlideUrlsAttribute(): array
@@ -96,17 +96,17 @@ class LandingPageSetting extends Model
                 return null;
             }
 
-            return Storage::disk('uploads')->url($path);
+            return url(Storage::disk('uploads')->url($path));
         }, $slides)));
     }
 
     public function getContentBackgroundUrlAttribute(): ?string
     {
-        return $this->content_background_path ? Storage::disk('uploads')->url($this->content_background_path) : null;
+        return $this->content_background_path ? url(Storage::disk('uploads')->url($this->content_background_path)) : null;
     }
 
     public function getAppIconUrlAttribute(): ?string
     {
-        return $this->app_icon_path ? Storage::disk('uploads')->url($this->app_icon_path) : null;
+        return $this->app_icon_path ? url(Storage::disk('uploads')->url($this->app_icon_path)) : null;
     }
 }

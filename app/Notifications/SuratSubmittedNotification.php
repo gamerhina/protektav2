@@ -5,13 +5,14 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 
 use App\Models\Surat;
 
 class SuratSubmittedNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     public $surat;
 
@@ -41,7 +42,7 @@ class SuratSubmittedNotification extends Notification
         $pemohon = $this->surat->pemohon?->nama ?? 'N/A';
         $pemohonType = ucfirst($this->surat->pemohon_type ?? 'Pemohon');
 
-        return (new MailMessage)
+        return $this->newMailMessage()
             ->subject('Pengajuan Surat Baru - ' . ($this->surat->jenis->nama ?? 'N/A'))
             ->greeting('Halo Admin,')
             ->line($pemohonType . ' baru saja mengajukan permohonan surat dan menunggu proses Anda.')

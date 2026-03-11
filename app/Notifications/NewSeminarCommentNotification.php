@@ -5,11 +5,12 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 
 class NewSeminarCommentNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     public $seminar;
     public $sender;
@@ -38,7 +39,7 @@ class NewSeminarCommentNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return $this->newMailMessage()
             ->subject('Diskusi Baru pada Seminar - ' . ($this->sender->nama ?? ''))
             ->line('Ada komentar baru dari ' . $this->sender->nama)
             ->line('Pesan: ' . \Illuminate\Support\Str::limit($this->seminar->comments->first()->message ?? '', 100))

@@ -6,11 +6,12 @@ use App\Models\Seminar;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 
 class EvaluatorAssignedNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     protected Seminar $seminar;
     protected string $role;
@@ -69,7 +70,7 @@ class EvaluatorAssignedNotification extends Notification
 
         $roleLabel = $roleLabels[$this->role] ?? $this->role;
 
-        return (new MailMessage)
+        return $this->newMailMessage()
             ->subject('Penugasan Penguji Seminar - ' . $this->seminar->mahasiswa->nama)
             ->greeting('Yth. ' . $notifiable->nama)
             ->line('Mahasiswa: ' . $this->seminar->mahasiswa->nama)
@@ -77,7 +78,6 @@ class EvaluatorAssignedNotification extends Notification
             ->line('Waktu: ' . ($this->seminar->waktu_mulai ?? '-'))
             ->line('Lokasi: ' . ($this->seminar->lokasi ?? '-'))
             ->action('Lihat Detail Seminar', route('dosen.nilai.input', $this->seminar->id))
-            ->line('Mohon untuk mempersiapkan penilaian dan tanda tangan.')
-            ->salutation('Terima kasih');
+            ->line('Mohon untuk mempersiapkan penilaian dan tanda tangan.');
     }
 }

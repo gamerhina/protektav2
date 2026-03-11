@@ -4,13 +4,14 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 
 use App\Models\Seminar;
 
 class NewSeminarRegistrationNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     public $seminar;
 
@@ -37,7 +38,7 @@ class NewSeminarRegistrationNotification extends Notification
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage)
+        return $this->newMailMessage()
             ->subject('Pendaftaran Seminar Baru - ' . ($this->seminar->mahasiswa->nama ?? 'N/A'))
             ->greeting('Halo Admin,')
             ->line('Mahasiswa baru telah mendaftar untuk seminar dan menunggu persetujuan Anda.')

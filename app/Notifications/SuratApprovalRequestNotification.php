@@ -5,13 +5,14 @@ namespace App\Notifications;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 
 use App\Models\SuratApproval;
 
 class SuratApprovalRequestNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     protected $approval;
 
@@ -46,7 +47,7 @@ class SuratApprovalRequestNotification extends Notification
             ? route('admin.approval.stamping.show', $this->approval->id)
             : route('admin.approval.show', $this->approval->id);
 
-        return (new MailMessage)
+        return $this->newMailMessage()
             ->subject('Permohonan Persetujuan Surat: ' . $surat->jenis->nama)
             ->greeting('Halo, ' . $notifiable->nama)
             ->line('Ada permohonan persetujuan surat baru yang memerlukan tindakan Anda.')

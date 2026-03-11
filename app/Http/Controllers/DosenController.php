@@ -272,17 +272,8 @@ class DosenController extends Controller
         $filter = $request->input('filter');
         if ($filter === 'pa') {
             $mahasiswaQuery->where('pembimbing_akademik_id', $dosen->id);
-        } else {
-            // Default: show PA students OR students evaluated by this dosen
-            $mahasiswaQuery->where(function($q) use ($dosen) {
-                $q->where('pembimbing_akademik_id', $dosen->id)
-                  ->orWhereHas('seminars', function($sq) use ($dosen) {
-                      $sq->where('p1_dosen_id', $dosen->id)
-                         ->orWhere('p2_dosen_id', $dosen->id)
-                         ->orWhere('pembahas_dosen_id', $dosen->id);
-                  });
-            });
         }
+        // No else block needed as we want to show all students by default
 
         $search = trim((string) $request->input('search', ''));
         $perPage = PaginationHelper::resolvePerPage($request, 15);

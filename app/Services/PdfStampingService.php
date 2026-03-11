@@ -63,8 +63,19 @@ class PdfStampingService
             // Disable auto page break to prevent stamps placed at the bottom from jumping to a new page
             $mpdf->SetAutoPageBreak(false);
 
-            // Set source file
-            $pageCount = $mpdf->setSourceFile($basePdfPath);
+            // Set source file - Attempt to setSourceFile, if it fails maybe it's a version issue
+            try {
+                $pageCount = $mpdf->setSourceFile($basePdfPath);
+            } catch (\Exception $e) {
+                // If it's a version/compression error, try Ghostscript Fix
+                if (str_contains($e->getMessage(), 'compression technique') || str_contains($e->getMessage(), 'FPDI')) {
+                    Log::info('PDF version issue detected, attempting Ghostscript conversion for: ' . $basePdfPath);
+                    $basePdfPath = $this->fixPdfWithGhostscript($originalPath);
+                    $pageCount = $mpdf->setSourceFile($basePdfPath);
+                } else {
+                    throw $e;
+                }
+            }
             
             // Get all approvals that should be stamped
             // We include the current one (it might be newly approved or being re-stamped)
@@ -114,6 +125,11 @@ class PdfStampingService
             }
 
             $mpdf->Output($newPath, \Mpdf\Output\Destination::FILE);
+
+            // Clean up temporary Ghostscript file if it was created
+            if ($basePdfPath !== $originalPath && file_exists($basePdfPath)) {
+                unlink($basePdfPath);
+            }
 
             // Update Surat
             $updateData = ['generated_file_path' => $fileName];
@@ -441,6 +457,64 @@ class PdfStampingService
                 return $approval->role_nama ?: ($approval->role?->nama ?? 'Pejabat');
             default: return $key;
         }
+    }
+
+    /**
+     * Fix modern PDF versions by down-converting to 1.4 using Ghostscript.
+     */
+    private function fixPdfWithGhostscript($filePath)
+    {
+        $tempPath = storage_path('app/temp_stamped_' . time() . '_' . basename($filePath));
+        
+        // Use GS_PATH from .env or find in system
+        $gs = env('GS_PATH');
+        
+        if (empty($gs)) {
+            // Try gswin64c (Windows) then gs (Linux/Other)
+            $gs = 'gswin64c';
+            exec("where $gs 2>&1", $out, $ret);
+            if ($ret !== 0) {
+                $gs = 'gs';
+                exec("where $gs 2>&1", $out, $ret);
+                if ($ret !== 0) {
+                     // Check common Windows paths for Ghostscript if 'where' fails
+                     $commonWindowsPaths = [
+                        'C:\Program Files\gs\gs10.03.0\bin\gswin64c.exe',
+                        'C:\Program Files\gs\gs10.02.1\bin\gswin64c.exe',
+                        'C:\Program Files\gs\gs10.02.0\bin\gswin64c.exe',
+                        'C:\Program Files\gs\gs10.01.2\bin\gswin64c.exe',
+                        'C:\Program Files\gs\gs10.01.1\bin\gswin64c.exe',
+                        'C:\Program Files\gs\gs10.00.0\bin\gswin64c.exe',
+                     ];
+                     $foundCustom = false;
+                     foreach ($commonWindowsPaths as $path) {
+                         if (file_exists($path)) {
+                             $gs = $path;
+                             $foundCustom = true;
+                             break;
+                         }
+                     }
+                     
+                     if (!$foundCustom) {
+                        throw new \Exception("Ghostscript tidak ditemukan! Sistem gagal memproses PDF versi baru (1.5+). Mohon instal Ghostscript dan pastikan 'gswin64c' ada di System PATH atau tentukan GS_PATH di .env");
+                     }
+                }
+            }
+        }
+
+        // Run Ghostscript command to convert to PDF 1.4
+        // We use -dCompatibilityLevel=1.4 to ensure compatibility with FPDI
+        $command = "\"$gs\" -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dNOPAUSE -dQUIET -dBATCH -sOutputFile=\"$tempPath\" \"$filePath\" 2>&1";
+        
+        exec($command, $output, $returnCode);
+
+        if ($returnCode !== 0 || !file_exists($tempPath)) {
+            $msg = !empty($output) ? implode(' ', $output) : "Unknown Ghostscript error (Check GS_PATH)";
+            Log::error('Ghostscript conversion failed', ['command' => $command, 'output' => $output]);
+            throw new \Exception("Gagal konversi PDF: " . $msg);
+        }
+
+        return $tempPath;
     }
 
 }

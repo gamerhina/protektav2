@@ -4,12 +4,13 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
+use App\Traits\CustomNotificationSalutation;
 use Illuminate\Notifications\Notification;
 use App\Models\Seminar;
 
 class SeminarStatusUpdatedNotification extends Notification
 {
-    use Queueable;
+    use Queueable, CustomNotificationSalutation;
 
     public $seminar;
     public $previousStatus;
@@ -50,7 +51,7 @@ class SeminarStatusUpdatedNotification extends Notification
         $mahasiswaNama = $this->seminar->mahasiswa->nama ?? 'Mahasiswa';
         $subject = 'Status Seminar ' . $mahasiswaNama . ' Diperbarui: ' . $statusText;
 
-        return (new MailMessage)
+        return $this->newMailMessage()
             ->subject($subject)
             ->greeting('Halo ' . ($notifiable->nama ?? 'User') . ',')
             ->line('Status pendaftaran seminar ' . $mahasiswaNama . ' telah diperbarui.')
