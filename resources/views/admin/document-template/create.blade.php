@@ -98,11 +98,29 @@
                         <label class="block text-sm font-bold text-slate-700 mb-4 flex items-center gap-2">
                             <i class="fas fa-download text-indigo-500"></i> Izin Download (Berdasarkan Status Seminar)
                         </label>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                            <!-- Status: Diajukan -->
+                            <div class="space-y-3">
+                                <span class="text-[10px] font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded-lg uppercase tracking-wider">Status: Diajukan</span>
+                                <div class="flex flex-col gap-3">
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" name="download_rules[diajukan][]" value="mahasiswa" 
+                                            {{ in_array('mahasiswa', old('download_rules.diajukan', [])) ? 'checked' : '' }}
+                                            class="w-5 h-5 rounded border-slate-300 text-yellow-600 focus:ring-yellow-500">
+                                        <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Mahasiswa</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" name="download_rules[diajukan][]" value="dosen" 
+                                            {{ in_array('dosen', old('download_rules.diajukan', [])) ? 'checked' : '' }}
+                                            class="w-5 h-5 rounded border-slate-300 text-yellow-600 focus:ring-yellow-500">
+                                        <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Dosen</span>
+                                    </label>
+                                </div>
+                            </div>
                             <!-- Status: Disetujui -->
                             <div class="space-y-3">
                                 <span class="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg uppercase tracking-wider">Status: Disetujui</span>
-                                <div class="flex items-center gap-6">
+                                <div class="flex flex-col gap-3">
                                     <label class="flex items-center gap-2 cursor-pointer group">
                                         <input type="checkbox" name="download_rules[disetujui][]" value="mahasiswa" 
                                             {{ in_array('mahasiswa', old('download_rules.disetujui', [])) ? 'checked' : '' }}
@@ -116,26 +134,42 @@
                                         <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Dosen</span>
                                     </label>
                                 </div>
-                                <p class="text-[10px] text-slate-400 italic">Izinkan download saat status seminar sudah 'Disetujui'.</p>
+                            </div>
+                            <!-- Status: Belum Lengkap -->
+                            <div class="space-y-3">
+                                <span class="text-[10px] font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg uppercase tracking-wider">Status: Blm Lengkap</span>
+                                <div class="flex flex-col gap-3">
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" name="download_rules[belum_lengkap][]" value="mahasiswa" 
+                                            {{ in_array('mahasiswa', old('download_rules.belum_lengkap', [])) ? 'checked' : '' }}
+                                            class="w-5 h-5 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                                        <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Mahasiswa</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer group">
+                                        <input type="checkbox" name="download_rules[belum_lengkap][]" value="dosen" 
+                                            {{ in_array('dosen', old('download_rules.belum_lengkap', [])) ? 'checked' : '' }}
+                                            class="w-5 h-5 rounded border-slate-300 text-orange-600 focus:ring-orange-500">
+                                        <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Dosen</span>
+                                    </label>
+                                </div>
                             </div>
                             <!-- Status: Selesai -->
                             <div class="space-y-3">
                                 <span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-wider">Status: Selesai</span>
-                                <div class="flex items-center gap-6">
+                                <div class="flex flex-col gap-3">
                                     <label class="flex items-center gap-2 cursor-pointer group">
                                         <input type="checkbox" name="download_rules[selesai][]" value="mahasiswa" 
                                             {{ in_array('mahasiswa', old('download_rules.selesai', ['mahasiswa', 'dosen'])) ? 'checked' : '' }}
-                                            class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            class="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                                         <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Mahasiswa</span>
                                     </label>
                                     <label class="flex items-center gap-2 cursor-pointer group">
                                         <input type="checkbox" name="download_rules[selesai][]" value="dosen" 
                                             {{ in_array('dosen', old('download_rules.selesai', ['mahasiswa', 'dosen'])) ? 'checked' : '' }}
-                                            class="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                            class="w-5 h-5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
                                         <span class="text-sm text-slate-600 group-hover:text-slate-900 transition-colors">Dosen</span>
                                     </label>
                                 </div>
-                                <p class="text-[10px] text-slate-400 italic">Izinkan download saat status seminar sudah 'Selesai'.</p>
                             </div>
                         </div>
                     </div>

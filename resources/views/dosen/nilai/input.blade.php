@@ -178,11 +178,20 @@
                         ->get()
                         ->filter(function($template) use ($status) {
                             $rules = $template->download_rules ?? [];
-                            if ($status === 'disetujui' && isset($rules['disetujui'])) {
-                                return in_array('dosen', $rules['disetujui']);
+                            if (isset($rules[$status])) {
+                                return in_array('dosen', (array)$rules[$status]);
                             }
-                            if ($status === 'selesai' && isset($rules['selesai'])) {
-                                return in_array('dosen', $rules['selesai']);
+                            // Also allow if it was allowed in a previous status (e.g. allowed at 'disetujui', should still be available at 'belum_lengkap' or 'selesai')
+                            $statusOrder = ['diajukan' => 1, 'disetujui' => 2, 'belum_lengkap' => 3, 'selesai' => 4];
+                            $currentOrder = $statusOrder[$status] ?? 0;
+                            
+                            foreach ($rules as $ruleStatus => $roles) {
+                                $ruleOrder = $statusOrder[$ruleStatus] ?? 0;
+                                if ($ruleOrder > 0 && $ruleOrder <= $currentOrder) {
+                                    if (in_array('dosen', (array)$roles)) {
+                                        return true;
+                                    }
+                                }
                             }
                             return false;
                         });
