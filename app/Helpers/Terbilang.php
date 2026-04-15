@@ -95,9 +95,31 @@ class Terbilang
         return 'Angka terlalu besar';
     }
 
-    public static function toHuruf($number)
+    public static function toHuruf($number, ?array $gradingScheme = null)
     {
         $number = (float) $number;
+
+        // Use custom grading scheme if provided
+        if ($gradingScheme && count($gradingScheme) > 0) {
+            // Sort by min value descending so we check highest grade first
+            usort($gradingScheme, function ($a, $b) {
+                return (float) ($b['min'] ?? 0) <=> (float) ($a['min'] ?? 0);
+            });
+
+            foreach ($gradingScheme as $grade) {
+                $min = (float) ($grade['min'] ?? 0);
+                $max = (float) ($grade['max'] ?? 100);
+                if ($number >= $min && $number <= $max) {
+                    return $grade['grade'] ?? '-';
+                }
+            }
+
+            // If score doesn't match any range, return the lowest grade
+            $lowest = end($gradingScheme);
+            return $lowest['grade'] ?? 'E';
+        }
+
+        // Default hardcoded fallback (only used if no grading scheme is configured)
         if ($number >= 80) return 'A';
         if ($number >= 75) return 'B+';
         if ($number >= 70) return 'B';

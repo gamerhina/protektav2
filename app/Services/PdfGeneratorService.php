@@ -1012,7 +1012,7 @@ class PdfGeneratorService
 
         $finalScore = $seminar->calculateWeightedScore();
         $data['nilai_akhir'] = $finalScore;
-        $data['nilai_huruf'] = \App\Helpers\Terbilang::toHuruf($finalScore);
+        $data['nilai_huruf'] = \App\Helpers\Terbilang::toHuruf($finalScore, $jenis->grading_scheme);
         $data['nilai_terbilang'] = \App\Helpers\Terbilang::convert($finalScore);
         $data['HM'] = $data['nilai_huruf'];
         $data['terbilang'] = $data['nilai_terbilang'];
