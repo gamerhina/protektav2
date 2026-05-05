@@ -556,8 +556,8 @@ class PdfGeneratorService
                     // Fallback for role-based signatures that might not have a record but exist globally
                     $isRoleBased = in_array(strtolower($type), ['kajur', 'sekjur', 'koor', 'dekan']);
                     if ($isRoleBased && !$hasSignature) {
-                        // For these roles, we only show it if the seminar is already completed
-                        $hasSignature = ($seminar->status === 'selesai' || $seminar->status === 'disetujui');
+                        // Show for role-based signers once seminar is approved or in any post-submission status
+                        $hasSignature = in_array($seminar->status, ['selesai', 'disetujui', 'belum_lengkap']);
                     }
 
                     // For p1, p2, pembahas, pa - they MUST be assigned and MUST have signed
@@ -1066,6 +1066,8 @@ class PdfGeneratorService
         // Approval Role data (Dynamic)
         try {
             $roles = \App\Models\SuratRole::where('is_active', true)->with('delegatedDosen')->get();
+            $seminarIsApproved = in_array($seminar->status, ['disetujui', 'selesai', 'belum_lengkap']);
+
             foreach ($roles as $role) {
                 $prefix = strtolower($role->kode);
                 $dosen = $role->delegatedDosen;
@@ -1074,7 +1076,7 @@ class PdfGeneratorService
                 $data[$prefix . '_nip'] = $data[$prefix . '_nip'] ?? ($dosen ? $dosen->nip : '');
                 $data[$prefix . '_jabatan'] = $data[$prefix . '_jabatan'] ?? $role->nama;
                 
-                // For global roles, signatures are optional but if they have signed this seminar specifically
+                // Priority 1: Check if this dosen has signed this specific seminar
                 $sig = $seminar->signatures()->where('jenis_penilai', $prefix)->first();
                 if ($sig && $sig->tanda_tangan && \Illuminate\Support\Facades\Storage::disk('uploads')->exists($sig->tanda_tangan)) {
                     $path = \Illuminate\Support\Facades\Storage::disk('uploads')->path($sig->tanda_tangan);
@@ -1083,10 +1085,22 @@ class PdfGeneratorService
                         $imgData = file_get_contents($path);
                         $data[$prefix . '_signature'] = 'data:image/' . $type . ';base64,' . base64_encode($imgData);
                     }
+                } elseif ($seminarIsApproved && $dosen && $dosen->signature_path) {
+                    // Priority 2 (Fallback): when seminar is approved and dosen has a profile signature
+                    // This shows kajur/dekan/koor signature even if they haven't signed via the system directly
+                    $diskPublic = \Illuminate\Support\Facades\Storage::disk('public');
+                    if ($diskPublic->exists($dosen->signature_path)) {
+                        $sigPath = $diskPublic->path($dosen->signature_path);
+                        if (file_exists($sigPath)) {
+                            $sigType = pathinfo($sigPath, PATHINFO_EXTENSION);
+                            $sigImgData = file_get_contents($sigPath);
+                            $data[$prefix . '_signature'] = 'data:image/' . $sigType . ';base64,' . base64_encode($sigImgData);
+                        }
+                    }
                 }
             }
         } catch (\Exception $e) {
-            // Ignore if error
+            \Log::warning('PdfGeneratorService: Failed to load role data for seminar ' . $seminar->id . ': ' . $e->getMessage());
         }
 
         // Provide aliases for dynamic roles to match common tag naming conventions
