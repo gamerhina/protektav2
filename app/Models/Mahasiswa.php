@@ -29,6 +29,8 @@ class Mahasiswa extends Authenticatable
         'foto',
         'pembimbing_akademik_id',
         'password',
+        'tanggal_lulus_manual',
+        'tanggal_mulai_kuliah_manual',
     ];
 
     /**
@@ -59,6 +61,8 @@ class Mahasiswa extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'tanggal_lulus_manual' => 'date',
+            'tanggal_mulai_kuliah_manual' => 'date',
         ];
     }
 
@@ -86,5 +90,74 @@ class Mahasiswa extends Authenticatable
     public function dosenPembimbing()
     {
         return $this->belongsToMany(Dosen::class, 'dosen_mahasiswa', 'mahasiswa_id', 'dosen_id');
+    }
+
+    /**
+     * Helper to get start date of study (1 August of the NPM's entry year)
+     */
+    public function getTanggalMulaiKuliah()
+    {
+        if ($this->tanggal_mulai_kuliah_manual) {
+            return \Carbon\Carbon::parse($this->tanggal_mulai_kuliah_manual)->startOfDay();
+        }
+
+        if (strlen($this->npm) >= 2) {
+            $year2Digit = substr($this->npm, 0, 2);
+            if (is_numeric($year2Digit)) {
+                $year = 2000 + intval($year2Digit);
+                return \Carbon\Carbon::createFromDate($year, 8, 1)->startOfDay();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Helper to get the graduation/comprehensive exam date (actual or manual fallback)
+     */
+    public function getTanggalLulus()
+    {
+        if ($this->tanggal_lulus_manual) {
+            return \Carbon\Carbon::parse($this->tanggal_lulus_manual)->startOfDay();
+        }
+
+        // Default: Date of completed Ujian Skripsi (US)
+        $ujSkripsi = $this->seminars()
+            ->whereHas('seminarJenis', function ($query) {
+                $query->where('kode', 'US');
+            })
+            ->where('status', 'selesai')
+            ->orderBy('tanggal', 'desc')
+            ->first();
+
+        if ($ujSkripsi && $ujSkripsi->tanggal) {
+            return \Carbon\Carbon::parse($ujSkripsi->tanggal)->startOfDay();
+        }
+
+        // Fallback: Most recent completed seminar
+        $lastCompleted = $this->seminars()
+            ->where('status', 'selesai')
+            ->orderBy('tanggal', 'desc')
+            ->first();
+
+        if ($lastCompleted && $lastCompleted->tanggal) {
+            return \Carbon\Carbon::parse($lastCompleted->tanggal)->startOfDay();
+        }
+
+        return null;
+    }
+
+    /**
+     * Helper to determine if student graduated on time (<= 4 years / 48 months)
+     */
+    public function isLulusTepatWaktu()
+    {
+        $startDate = $this->getTanggalMulaiKuliah();
+        $endDate = $this->getTanggalLulus();
+
+        if ($startDate && $endDate) {
+            return $endDate->lessThanOrEqualTo($startDate->copy()->addYears(4));
+        }
+
+        return null;
     }
 }

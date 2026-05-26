@@ -4,6 +4,13 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    @if(session('success'))
+        <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-2">
+            <i class="fas fa-check-circle text-emerald-500"></i>
+            <span class="text-sm font-semibold">{{ session('success') }}</span>
+        </div>
+    @endif
+
     <!-- Hero Banner -->
     <div class="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 rounded-3xl shadow-2xl p-8 md:p-12 text-white relative overflow-hidden">
         <div class="relative z-10 grid gap-6 md:grid-cols-2 items-center">
@@ -143,6 +150,17 @@
             </div>
         </div>
     </div>
+
+    <!-- Lulus Tepat Waktu Component -->
+    <x-lulus-tepat-waktu-section 
+        :tepat-waktu-count="$tepatWaktuCount"
+        :tidak-tepat-waktu-count="$tidakTepatWaktuCount"
+        :ongoing-tepat-waktu-count="$ongoingTepatWaktuCount"
+        :ongoing-overdue-count="$ongoingOverdueCount"
+        :students-paginated="$studentsPaginated"
+        :search-mhs="$searchMhs"
+        update-route-prefix="admin"
+    />
 
     <!-- Activity Feed -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-lg p-6">

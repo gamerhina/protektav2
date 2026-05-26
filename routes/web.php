@@ -64,6 +64,8 @@ Route::get('/seminar-document/{seminar}/template/{template}/download', [App\Http
 // Protected routes for admin
 Route::middleware(['auth:admin', 'notifications'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\AdminController::class, 'dashboard'])->name('dashboard');
+    Route::post('/mahasiswa/{mahasiswa}/update-tanggal-lulus', [App\Http\Controllers\AdminController::class, 'updateStudentTanggalLulus'])->name('mahasiswa.update-tanggal-lulus');
+    Route::get('/mahasiswa/export-graduation', [App\Http\Controllers\AdminController::class, 'exportGraduation'])->name('mahasiswa.export-graduation');
 
     // Profile routes for admin
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
@@ -270,6 +272,8 @@ Route::middleware(['auth:admin,dosen', 'notifications'])->prefix('admin')->name(
 // Protected routes for dosen
 Route::middleware(['auth:dosen', 'notifications'])->prefix('dosen')->name('dosen.')->group(function () {
     Route::get('/dashboard', [App\Http\Controllers\DosenController::class, 'dashboard'])->name('dashboard');
+    Route::post('/mahasiswa/{mahasiswa}/update-tanggal-lulus', [App\Http\Controllers\DosenController::class, 'updateStudentTanggalLulus'])->name('mahasiswa.update-tanggal-lulus');
+    Route::get('/mahasiswa/export-graduation', [App\Http\Controllers\DosenController::class, 'exportGraduation'])->name('mahasiswa.export-graduation');
 
     // Profile routes for dosen
     Route::get('/profile', [App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');

@@ -7,6 +7,8 @@ use App\Models\SeminarNilai;
 use App\Support\PaginationHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Exports\MahasiswaGraduationExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class DosenController extends Controller
 {
@@ -19,6 +21,22 @@ class DosenController extends Controller
         $dosen = Auth::guard('dosen')->user();
 
         $search = trim((string) $request->input('search', ''));
+        $perPage = PaginationHelper::resolvePerPage($request, 5);
+
+        $sortFields = [
+            'mahasiswa' => 'mahasiswa.nama',
+            'jenis' => 'seminar_jenis.nama',
+            'tanggal' => 'seminars.tanggal',
+            'status' => 'seminars.status',
+            'created_at' => 'seminars.created_at',
+        ];
+
+        $sort = $request->input('sort', 'tanggal');
+        if (! array_key_exists($sort, $sortFields)) {
+            $sort = 'tanggal';
+        }
+
+        $direction = strtolower($request->input('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
 
         $seminarDitinjauCount = Seminar::where(function ($query) use ($dosen) {
             $query->where('p1_dosen_id', $dosen->id)
@@ -72,17 +90,98 @@ class DosenController extends Controller
         }
 
         $evalSeminars = $evalSeminarsQuery
-            ->orderBy('seminars.tanggal', 'desc')
-            ->take(5) // Limit to 5 most recent for dashboard
+            ->orderBy($sortFields[$sort], $direction)
+            ->paginate($perPage)
+            ->withQueryString();
+
+        // Lulus Tepat Waktu stats calculations for Dosen's PA students
+        $allPAStudents = \App\Models\Mahasiswa::where('pembimbing_akademik_id', $dosen->id)
+            ->with('seminars.seminarJenis')
             ->get();
+        $tepatWaktuCount = 0;
+        $tidakTepatWaktuCount = 0;
+        $ongoingTepatWaktuCount = 0;
+        $ongoingOverdueCount = 0;
+
+        foreach ($allPAStudents as $student) {
+            $startDate = $student->getTanggalMulaiKuliah();
+            $endDate = $student->getTanggalLulus();
+            $isTepatWaktu = $student->isLulusTepatWaktu();
+            $limitDate = $startDate ? $startDate->copy()->addYears(4) : null;
+
+            if ($startDate) {
+                if ($endDate) {
+                    if ($isTepatWaktu) {
+                        $tepatWaktuCount++;
+                    } else {
+                        $tidakTepatWaktuCount++;
+                    }
+                } else {
+                    $now = now()->startOfDay();
+                    if ($limitDate && $now->lessThanOrEqualTo($limitDate)) {
+                        $ongoingTepatWaktuCount++;
+                    } else {
+                        $ongoingOverdueCount++;
+                    }
+                }
+            }
+        }
+
+        // Paginated PA student list
+        $searchMhs = trim((string) request()->input('search_mhs', ''));
+        $studentsQuery = \App\Models\Mahasiswa::where('pembimbing_akademik_id', $dosen->id);
+        if ($searchMhs !== '') {
+            $like = "%{$searchMhs}%";
+            $studentsQuery->where(function($q) use ($like) {
+                $q->where('nama', 'like', $like)
+                  ->orWhere('npm', 'like', $like);
+            });
+        }
+        $studentsPaginated = $studentsQuery->paginate(5, ['*'], 'page_mhs')->withQueryString();
 
         return view('dosen.dashboard', compact(
             'dosen',
             'seminarDitinjauCount',
             'nilaidiberikanCount',
             'mahasiswaBimbinganAkademikCount',
-            'evalSeminars'
+            'evalSeminars',
+            'perPage',
+            'search',
+            'tepatWaktuCount',
+            'tidakTepatWaktuCount',
+            'ongoingTepatWaktuCount',
+            'ongoingOverdueCount',
+            'studentsPaginated',
+            'searchMhs'
         ));
+    }
+
+    public function updateStudentTanggalLulus(Request $request, \App\Models\Mahasiswa $mahasiswa)
+    {
+        if (!Auth::guard('dosen')->check()) {
+            return redirect()->route('login')->with('error', 'Please log in to access this action.');
+        }
+
+        $request->validate([
+            'tanggal_lulus_manual' => 'nullable|date',
+            'tanggal_mulai_kuliah_manual' => 'nullable|date',
+        ]);
+
+        $mahasiswa->tanggal_lulus_manual = $request->input('tanggal_lulus_manual');
+        $mahasiswa->tanggal_mulai_kuliah_manual = $request->input('tanggal_mulai_kuliah_manual');
+        $mahasiswa->save();
+
+        return back()->with('success', 'Tanggal mulai kuliah dan kelulusan mahasiswa ' . $mahasiswa->nama . ' berhasil diperbarui.');
+    }
+
+    public function exportGraduation()
+    {
+        if (!Auth::guard('dosen')->check()) {
+            return redirect()->route('login')->with('error', 'Please log in to access this action.');
+        }
+
+        $dosen = Auth::guard('dosen')->user();
+        return Excel::download(new MahasiswaGraduationExport($dosen->id), 'Data_Kelulusan_Bimbingan_Mahasiswa_' . date('Y-m-d') . '.xlsx');
     }
 
     /**

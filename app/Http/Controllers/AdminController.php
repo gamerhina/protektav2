@@ -7,8 +7,9 @@ use App\Models\Mahasiswa;
 use App\Models\Seminar;
 use App\Models\DocumentTemplate;
 use Illuminate\Http\Request;
-
 use Illuminate\Support\Facades\Auth;
+use App\Exports\MahasiswaGraduationExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 class AdminController extends Controller
 {
@@ -64,10 +65,52 @@ class AdminController extends Controller
 
         $scheduledSeminarsCount = Seminar::where('tanggal', '>=', now()->toDateString())->count();
         
-        // Progress tasks (e.g., seminars this month that have been scheduled vs total this month)
         $totalMonth = Seminar::whereMonth('created_at', now()->month)->count();
         $scheduledMonth = Seminar::whereMonth('created_at', now()->month)->whereNotNull('tanggal')->count();
         $progressPercent = $totalMonth > 0 ? round(($scheduledMonth / $totalMonth) * 100) : 100;
+
+        // Lulus Tepat Waktu stats calculations
+        $allStudents = Mahasiswa::with('seminars.seminarJenis')->get();
+        $tepatWaktuCount = 0;
+        $tidakTepatWaktuCount = 0;
+        $ongoingTepatWaktuCount = 0;
+        $ongoingOverdueCount = 0;
+
+        foreach ($allStudents as $student) {
+            $startDate = $student->getTanggalMulaiKuliah();
+            $endDate = $student->getTanggalLulus();
+            $isTepatWaktu = $student->isLulusTepatWaktu();
+            $limitDate = $startDate ? $startDate->copy()->addYears(4) : null;
+
+            if ($startDate) {
+                if ($endDate) {
+                    if ($isTepatWaktu) {
+                        $tepatWaktuCount++;
+                    } else {
+                        $tidakTepatWaktuCount++;
+                    }
+                } else {
+                    $now = now()->startOfDay();
+                    if ($limitDate && $now->lessThanOrEqualTo($limitDate)) {
+                        $ongoingTepatWaktuCount++;
+                    } else {
+                        $ongoingOverdueCount++;
+                    }
+                }
+            }
+        }
+
+        // Paginated student list
+        $searchMhs = trim((string) request()->input('search_mhs', ''));
+        $studentsQuery = Mahasiswa::query();
+        if ($searchMhs !== '') {
+            $like = "%{$searchMhs}%";
+            $studentsQuery->where(function($q) use ($like) {
+                $q->where('nama', 'like', $like)
+                  ->orWhere('npm', 'like', $like);
+            });
+        }
+        $studentsPaginated = $studentsQuery->paginate(5, ['*'], 'page_mhs')->withQueryString();
 
         return view('admin.dashboard', compact(
             'mahasiswaCount', 
@@ -78,7 +121,40 @@ class AdminController extends Controller
             'trendPercent',
             'recentActivities',
             'scheduledSeminarsCount',
-            'progressPercent'
+            'progressPercent',
+            'tepatWaktuCount',
+            'tidakTepatWaktuCount',
+            'ongoingTepatWaktuCount',
+            'ongoingOverdueCount',
+            'studentsPaginated',
+            'searchMhs'
         ));
+    }
+
+    public function updateStudentTanggalLulus(Request $request, Mahasiswa $mahasiswa)
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('login')->with('error', 'Please log in to access this action.');
+        }
+
+        $request->validate([
+            'tanggal_lulus_manual' => 'nullable|date',
+            'tanggal_mulai_kuliah_manual' => 'nullable|date',
+        ]);
+
+        $mahasiswa->tanggal_lulus_manual = $request->input('tanggal_lulus_manual');
+        $mahasiswa->tanggal_mulai_kuliah_manual = $request->input('tanggal_mulai_kuliah_manual');
+        $mahasiswa->save();
+
+        return back()->with('success', 'Tanggal mulai kuliah dan kelulusan mahasiswa ' . $mahasiswa->nama . ' berhasil diperbarui.');
+    }
+
+    public function exportGraduation()
+    {
+        if (!Auth::guard('admin')->check()) {
+            return redirect()->route('login')->with('error', 'Please log in to access this action.');
+        }
+
+        return Excel::download(new MahasiswaGraduationExport(), 'Data_Kelulusan_Mahasiswa_' . date('Y-m-d') . '.xlsx');
     }
 }

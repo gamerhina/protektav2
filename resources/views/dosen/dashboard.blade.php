@@ -124,16 +124,43 @@
                     <p class="mt-1 text-xs md:text-sm text-slate-500">Daftar singkat seminar yang paling dekat atau baru diajukan.</p>
                 </div>
             </div>
+            
+            @php
+                $defaultSort = 'tanggal';
+                $defaultDirection = 'desc';
+            @endphp
+            <form method="GET" class="mb-4">
+                <div class="bg-white/70 backdrop-blur border border-gray-100 rounded-2xl shadow-inner p-4 md:p-5">
+                    <div class="grid gap-4">
+                        <div>
+                            <label for="search" class="text-sm font-medium text-gray-600">Cari Seminar</label>
+                            <div class="relative mt-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z" />
+                                    </svg>
+                                </span>
+                                <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="Ketik untuk mencari (Nama mahasiswa, judul, jenis, atau status)..."
+                                       class="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-2 text-sm text-gray-700 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="sort" value="{{ request('sort', $defaultSort) }}">
+                    <input type="hidden" name="direction" value="{{ request('direction', $defaultDirection) }}">
+                    <input type="hidden" name="per_page" value="{{ request('per_page', $perPage ?? 5) }}">
+                </div>
+            </form>
+
             <div class="bg-white border border-gray-100 rounded-2xl p-4 md:p-6 shadow-sm">
                     @if($evalSeminars->count() > 0)
                         <div class="overflow-x-auto">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase bg-gray-50">Mahasiswa</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase bg-gray-50">Jenis</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase bg-gray-50">Tanggal</th>
-                                        <th class="px-6 py-3 text-left text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase bg-gray-50">Status</th>
+                                        <x-sortable-th column="mahasiswa" label="Mahasiswa" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
+                                        <x-sortable-th column="jenis" label="Jenis" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
+                                        <x-sortable-th column="tanggal" label="Tanggal" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
+                                        <x-sortable-th column="status" label="Status" :default-sort="$defaultSort" :default-direction="$defaultDirection" />
                                         <th class="px-6 py-3 text-left text-xs font-semibold tracking-[0.2em] text-gray-500 uppercase bg-gray-50">Aksi</th>
                                     </tr>
                                 </thead>
@@ -209,12 +236,50 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div class="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                            <form method="GET" class="w-full md:w-auto">
+                                @include('components.preserve-query', ['exclude' => ['page', 'per_page']])
+                                <input type="hidden" name="page" value="1">
+                                @include('components.page-size-selector', ['perPage' => $perPage ?? 5, 'autoSubmit' => true])
+                            </form>
+                            <div class="w-full md:w-auto">
+                                {{ $evalSeminars->links('components.pagination') }}
+                            </div>
+                        </div>
                     @else
                         <p class="text-gray-600">Anda tidak memiliki tugas evaluasi yang tertunda.</p>
                     @endif
                 </div>
             </div>
 
+        </div>
+
+        <!-- Lulus Tepat Waktu Component -->
+        <div class="mt-8">
+            <h2 class="text-lg md:text-xl font-semibold text-gray-800 flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-indigo-50 text-indigo-600">
+                    <i class="fas fa-user-graduate text-xs"></i>
+                </span>
+                <span>Bimbingan Akademik & Lulus Tepat Waktu</span>
+            </h2>
+            <p class="mt-1 text-xs md:text-sm text-slate-500">Pantau dan kelola estimasi kelulusan tepat waktu untuk mahasiswa bimbingan akademik Anda.</p>
+            
+            @if(session('success'))
+                <div class="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-2">
+                    <i class="fas fa-check-circle text-emerald-500"></i>
+                    <span class="text-sm font-semibold">{{ session('success') }}</span>
+                </div>
+            @endif
+
+            <x-lulus-tepat-waktu-section 
+                :tepat-waktu-count="$tepatWaktuCount"
+                :tidak-tepat-waktu-count="$tidakTepatWaktuCount"
+                :ongoing-tepat-waktu-count="$ongoingTepatWaktuCount"
+                :ongoing-overdue-count="$ongoingOverdueCount"
+                :students-paginated="$studentsPaginated"
+                :search-mhs="$searchMhs"
+                update-route-prefix="dosen"
+            />
         </div>
     </div>
 </div>
