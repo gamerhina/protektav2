@@ -8,13 +8,13 @@
     'updateRoutePrefix' => 'admin' // 'admin' or 'dosen'
 ])
 
-<div class="grid gap-6 lg:grid-cols-3 mt-6">
+<div class="grid gap-6 lg:grid-cols-3">
     <!-- Chart Card -->
-    <div class="bg-white rounded-3xl border border-gray-100 shadow-lg p-6 flex flex-col justify-between">
+    <div class="w-full max-w-full bg-white rounded-3xl border border-gray-100 shadow-lg p-4 sm:p-6 flex flex-col justify-between min-w-0">
         <div>
-            <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                <span class="w-2.5 h-6 rounded-full bg-indigo-600 block"></span>
-                <span>Persentase Kelulusan Tepat Waktu</span>
+            <h3 class="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                <span class="w-2.5 h-6 rounded-full bg-indigo-600 block shrink-0"></span>
+                <span class="leading-tight">Persentase Kelulusan Tepat Waktu</span>
             </h3>
             <p class="text-xs text-gray-500 mt-1">Estimasi ketepatan kelulusan (batas 4 tahun / 48 bulan dari 1 Agustus angkatan)</p>
         </div>
@@ -30,29 +30,29 @@
             @endif
         </div>
 
-        <div class="grid grid-cols-2 gap-2.5 text-xs">
-            <div class="flex items-center gap-1.5 p-2 rounded-xl bg-emerald-50/50 border border-emerald-100">
+        <div class="grid grid-cols-1 min-[400px]:grid-cols-2 gap-3 text-xs mt-auto">
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-emerald-50/50 border border-emerald-100">
                 <span class="w-3 h-3 rounded-full bg-emerald-500 block shrink-0"></span>
                 <div>
                     <span class="text-[10px] text-gray-400 block uppercase font-semibold">Tepat Waktu</span>
                     <strong class="text-emerald-700 text-sm block mt-0.5">{{ $tepatWaktuCount }} Mhs</strong>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5 p-2 rounded-xl bg-rose-50/50 border border-rose-100">
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-rose-50/50 border border-rose-100">
                 <span class="w-3 h-3 rounded-full bg-rose-500 block shrink-0"></span>
                 <div>
                     <span class="text-[10px] text-gray-400 block uppercase font-semibold">Terlambat</span>
                     <strong class="text-rose-700 text-sm block mt-0.5">{{ $tidakTepatWaktuCount }} Mhs</strong>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5 p-2 rounded-xl bg-blue-50/50 border border-blue-100">
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-blue-50/50 border border-blue-100">
                 <span class="w-3 h-3 rounded-full bg-blue-500 block shrink-0"></span>
                 <div>
                     <span class="text-[10px] text-gray-400 block uppercase font-semibold">Aktif (Aman)</span>
                     <strong class="text-blue-700 text-sm block mt-0.5">{{ $ongoingTepatWaktuCount }} Mhs</strong>
                 </div>
             </div>
-            <div class="flex items-center gap-1.5 p-2 rounded-xl bg-amber-50/50 border border-amber-100">
+            <div class="flex items-center gap-2 p-2.5 rounded-xl bg-amber-50/50 border border-amber-100">
                 <span class="w-3 h-3 rounded-full bg-amber-500 block shrink-0"></span>
                 <div>
                     <span class="text-[10px] text-gray-400 block uppercase font-semibold">Aktif (Kritis)</span>
@@ -63,31 +63,31 @@
     </div>
 
     <!-- Student List Card -->
-    <div class="lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-lg p-6 flex flex-col justify-between">
-        <div>
+    <div class="w-full max-w-full lg:col-span-2 bg-white rounded-3xl border border-gray-100 shadow-lg p-4 sm:p-6 flex flex-col justify-between min-w-0">
+        <div class="min-w-0 w-full overflow-hidden">
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
-                        <span class="w-2.5 h-6 rounded-full bg-indigo-600 block"></span>
-                        <span>Daftar Mahasiswa & Kelulusan</span>
+                <div class="min-w-0 flex-1">
+                    <h3 class="text-base sm:text-lg font-bold text-gray-900 flex items-center gap-2">
+                        <span class="w-2.5 h-6 rounded-full bg-indigo-600 block shrink-0"></span>
+                        <span class="leading-tight truncate">Daftar Mahasiswa & Kelulusan</span>
                     </h3>
-                    <p class="text-xs text-gray-500 mt-1">Klik tombol edit untuk merubah tanggal kelulusan</p>
+                    <p class="text-xs text-gray-500 mt-1 truncate">Klik tombol edit untuk merubah tanggal kelulusan</p>
                 </div>
 
-                <div class="flex flex-col sm:flex-row sm:items-center gap-2">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
                     <!-- Export Button -->
                     <a 
                         href="{{ route($updateRoutePrefix . '.mahasiswa.export-graduation') }}" 
                         target="_blank"
                         download="data_kelulusan.xlsx"
-                        class="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 text-xs font-semibold transition whitespace-nowrap"
+                        class="inline-flex items-center justify-center gap-1.5 px-4 py-2 sm:px-3 sm:py-1.5 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 border border-emerald-100 text-sm sm:text-xs font-semibold transition whitespace-nowrap w-full sm:w-auto shrink-0"
                     >
                         <i class="fas fa-file-excel text-xs"></i>
                         <span>Export Excel</span>
                     </a>
 
                     <!-- Mini Search Form -->
-                    <form method="GET" class="relative sm:w-60">
+                    <form method="GET" class="relative w-full sm:w-60">
                         @foreach(request()->except(['search_mhs', 'page_mhs']) as $key => $value)
                             @if(is_array($value))
                                 @foreach($value as $v)
@@ -106,14 +106,14 @@
                             name="search_mhs" 
                             value="{{ $searchMhs }}" 
                             placeholder="Cari nama / NPM..."
-                            class="w-full rounded-xl border border-gray-200 bg-white pl-8 pr-3 py-1.5 text-xs text-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-100 transition"
+                            class="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-3 py-2 sm:py-1.5 text-sm sm:text-xs text-gray-700 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-100 transition"
                         >
                     </form>
                 </div>
             </div>
 
             <!-- Table of Students -->
-            <div class="overflow-x-auto mt-4 border border-slate-100 rounded-2xl">
+            <div class="overflow-x-auto w-full max-w-full mt-4 border border-slate-100 rounded-2xl">
                 <table class="min-w-full divide-y divide-slate-100">
                     <thead class="bg-slate-50">
                         <tr>
@@ -227,7 +227,7 @@
 
         <!-- Pagination -->
         @if($studentsPaginated->count() > 0)
-            <div class="mt-4 flex justify-end">
+            <div class="mt-4 flex sm:justify-end overflow-x-auto w-full pb-2">
                 {{ $studentsPaginated->appends(['search_mhs' => $searchMhs])->links('components.pagination') }}
             </div>
         @endif

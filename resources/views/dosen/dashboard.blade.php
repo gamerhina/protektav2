@@ -151,9 +151,9 @@
                 </div>
             </form>
 
-            <div class="bg-white border border-gray-100 rounded-2xl p-4 md:p-6 shadow-sm">
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 md:p-6 shadow-sm w-full min-w-0 max-w-full">
                     @if($evalSeminars->count() > 0)
-                        <div class="overflow-x-auto">
+                        <div class="overflow-x-auto w-full max-w-full">
                             <table class="min-w-full divide-y divide-gray-200">
                                 <thead class="bg-gray-50">
                                     <tr>
@@ -237,12 +237,12 @@
                             </table>
                         </div>
                         <div class="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                            <form method="GET" class="w-full md:w-auto">
+                            <form method="GET" class="w-full md:w-auto overflow-hidden">
                                 @include('components.preserve-query', ['exclude' => ['page', 'per_page']])
                                 <input type="hidden" name="page" value="1">
                                 @include('components.page-size-selector', ['perPage' => $perPage ?? 5, 'autoSubmit' => true])
                             </form>
-                            <div class="w-full md:w-auto">
+                            <div class="w-full md:w-auto overflow-x-auto pb-2">
                                 {{ $evalSeminars->links('components.pagination') }}
                             </div>
                         </div>

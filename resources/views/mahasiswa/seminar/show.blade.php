@@ -191,7 +191,6 @@
                                                 <p class="text-[10px] text-gray-400 font-mono">{{ $isEditable ? 'GANTI FILE (OPSIONAL)' : 'FILE TERUNGGAH' }}</p>
                                             </div>
                                         </div>
-                                        @if(!$isEditable)
                                         <div class="flex space-x-2">
                                             <a href="{{ route('mahasiswa.seminar.files.show', ['path' => $value]) }}" target="_blank" 
                                                class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-xs font-bold rounded-xl shadow-md hover:shadow-lg hover:from-blue-600 hover:to-indigo-700 hover:-translate-y-0.5 transition-all duration-200 group">
@@ -199,7 +198,6 @@
                                                 <i class="fas fa-external-link-alt group-hover:rotate-45 transition-transform duration-300"></i>
                                             </a>
                                         </div>
-                                        @endif
                                     </div>
                                     @if($isEditable)
                                         <input type="file" name="berkas_syarat_items[{{ $key }}]" class="block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-[10px] file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4 transition-all">

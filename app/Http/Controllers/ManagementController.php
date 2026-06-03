@@ -715,9 +715,7 @@ class ManagementController extends Controller
             $rules = $template->download_rules ?? [];
             $status = $seminar->status;
             
-            $ruleKey = null;
-            if ($status === 'disetujui') $ruleKey = 'disetujui';
-            if ($status === 'selesai') $ruleKey = 'selesai';
+            $ruleKey = $status;
 
             if (!$ruleKey || !isset($rules[$ruleKey]) || empty($rules[$ruleKey])) {
                 return back()->with('error', 'Dokumen ini belum tersedia untuk diunduh pada status saat ini (' . $status . ').');
