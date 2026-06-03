@@ -393,14 +393,16 @@ class SeminarRegistrationController extends Controller
         // For berkas_syarat, the path is stored in the json column.
         
         $mahasiswaId = Auth::guard('mahasiswa')->id();
+        $filename = basename($normalizedPath);
         
         // Find if any seminar belonging to this student has this path in its berkas_syarat
         $hasAccess = Seminar::where('mahasiswa_id', $mahasiswaId)
-            ->where(function($query) use ($normalizedPath) {
+            ->where(function($query) use ($filename) {
                 // We use a simple like query here.
                 // It's not perfect but JSON searching in cross-db compatible way (sqlite/mysql) in raw SQL is annoying
                 // Since this is for authorized user download, this basic check is reasonably safe alongside the file exist check.
-                $query->where('berkas_syarat', 'like', '%' . $normalizedPath . '%');
+                // We search by filename to avoid JSON slash escaping issues (e.g. \/ vs /)
+                $query->where('berkas_syarat', 'like', '%' . $filename . '%');
             })->exists();
 
         if (!$hasAccess) {
