@@ -6,7 +6,12 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="py-8">
         <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg p-6">
-            <h1 class="text-2xl font-semibold text-gray-800 mb-6">Mahasiswa Dashboard</h1>
+            <div class="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
+                <h1 class="text-2xl font-semibold text-gray-800 m-0">Mahasiswa Dashboard</h1>
+                <a href="{{ url('/#schedule') }}" target="_blank" class="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 hover:-translate-y-0.5 transition-all shadow-md hover:shadow-lg w-full md:w-auto">
+                    <i class="fas fa-calendar-alt animate-pulse"></i> Lihat Jadwal Seminar
+                </a>
+            </div>
             @php
                 $mahasiswaUser = auth()->guard('mahasiswa')->user();
             @endphp

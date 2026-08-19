@@ -18,8 +18,11 @@
                 <h1 class="text-3xl md:text-4xl font-bold leading-tight text-white">Selamat datang kembali, {{ auth()->user()->nama ?? 'Admin' }}.</h1>
                 <p class="text-white mt-4 text-lg">Pantau ekosistem seminar, kelola pengguna, dan jaga proses akademik tetap lancar melalui ringkasan ini.</p>
                 <div class="mt-6 flex flex-wrap gap-3">
-                    <a href="{{ route('admin.seminar.create') }}" class="btn-gradient inline-flex items-center gap-2 text-sm">
-                        <i class="fas fa-bolt"></i> Buat Seminar Baru
+                    <a href="{{ route('admin.seminar.create') }}" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/20 backdrop-blur-md border border-white/40 text-white text-sm font-bold tracking-wide hover:bg-white/30 hover:scale-105 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(255,255,255,0.2)]">
+                        <i class="fas fa-bolt text-yellow-300"></i> Buat Seminar Baru
+                    </a>
+                    <a href="{{ url('/#schedule') }}" target="_blank" class="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/40 text-white text-sm font-bold tracking-wide hover:bg-white/20 hover:scale-105 transition-all shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:shadow-[0_8px_30px_rgba(255,255,255,0.2)]">
+                        <i class="fas fa-calendar-alt animate-pulse"></i> Lihat Jadwal Seminar
                     </a>
                 </div>
             </div>
@@ -44,7 +47,7 @@
                 </div>
             </div>
         </div>
-        <div class="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_55%)]"></div>
+        <div class="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_55%)] pointer-events-none"></div>
     </div>
 
     <!-- Metric Cards -->
@@ -161,6 +164,9 @@
         :search-mhs="$searchMhs"
         update-route-prefix="admin"
     />
+
+    <!-- Grafik Progres Skripsi -->
+    <x-grafik-progres-skripsi :chart-data="$chartData" />
 
     <!-- Activity Feed -->
     <div class="bg-white rounded-3xl border border-gray-100 shadow-lg p-6">

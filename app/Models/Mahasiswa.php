@@ -93,7 +93,7 @@ class Mahasiswa extends Authenticatable
     }
 
     /**
-     * Helper to get start date of study (1 August of the NPM's entry year)
+     * Helper to get start date of study (31 August of the NPM's entry year)
      */
     public function getTanggalMulaiKuliah()
     {
@@ -105,7 +105,7 @@ class Mahasiswa extends Authenticatable
             $year2Digit = substr($this->npm, 0, 2);
             if (is_numeric($year2Digit)) {
                 $year = 2000 + intval($year2Digit);
-                return \Carbon\Carbon::createFromDate($year, 8, 1)->startOfDay();
+                return \Carbon\Carbon::createFromDate($year, 8, 31)->startOfDay();
             }
         }
         return null;

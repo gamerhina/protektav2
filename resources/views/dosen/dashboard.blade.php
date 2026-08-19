@@ -19,6 +19,13 @@
                 </h1>
                 <p class="mt-1 text-sm md:text-base text-slate-500">Pantau ringkasan aktivitas bimbingan dan evaluasi seminar Anda.</p>
             </div>
+            
+            <!-- Tombol Lihat Jadwal Seminar -->
+            <div class="flex-shrink-0">
+                <a href="{{ url('/#schedule') }}" target="_blank" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 hover:-translate-y-0.5 transition-all shadow-md hover:shadow-lg">
+                    <i class="fas fa-calendar-alt animate-pulse"></i> Lihat Jadwal Seminar
+                </a>
+            </div>
         </div>
 
         <!-- Stats & Overview -->
@@ -280,6 +287,9 @@
                 :search-mhs="$searchMhs"
                 update-route-prefix="dosen"
             />
+
+            <!-- Grafik Progres Skripsi -->
+            <x-grafik-progres-skripsi :chart-data="$chartData" />
         </div>
     </div>
 </div>

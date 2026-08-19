@@ -12,6 +12,13 @@
         <link rel="icon" href="{{ $settings->favicon_url }}?v={{ optional($settings)->updated_at?->timestamp ?? time() }}" type="image/png">
     @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'], 'build')
+    <script>
+        // Global Shim for Protekta (prevents race conditions)
+        window.Protekta = window.Protekta || {
+            initRegistry: [],
+            registerInit: function(fn) { this.initRegistry.push(fn); }
+        };
+    </script>
     @php
         $primary = optional($settings)->primary_color ?? '#1d4ed8';
         $secondary = optional($settings)->secondary_color ?? '#0f172a';
@@ -124,44 +131,7 @@
         }
 
         .content-shell--animated {
-            background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.18), transparent 45%),
-                        radial-gradient(circle at 80% 0%, rgba(236, 72, 153, 0.15), transparent 55%),
-                        #f8fafc;
-        }
-
-        .content-shell--animated::before,
-        .content-shell--animated::after {
-            content: '';
-            position: absolute;
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.3), transparent 60%);
-            filter: blur(10px);
-            animation: floatBlob 22s ease-in-out infinite;
-        }
-
-        .content-shell--animated::before {
-            top: -120px;
-            left: -80px;
-        }
-
-        .content-shell--animated::after {
-            bottom: -160px;
-            right: -100px;
-            animation-duration: 28s;
-            background: radial-gradient(circle, rgba(236, 72, 153, 0.25), transparent 60%);
-        }
-
-        @keyframes floatBlob {
-            0% {
-                transform: translate3d(0, 0, 0) scale(1);
-            }
-            50% {
-                transform: translate3d(40px, -20px, 0) scale(1.15);
-            }
-            100% {
-                transform: translate3d(0, 0, 0) scale(1);
-            }
+            background-color: transparent;
         }
 
         .hero-section {
@@ -741,8 +711,19 @@
                         </div>
 
                         <div class="flex flex-row flex-wrap items-center justify-center gap-4 sm:gap-6">
-                            <a href="{{ optional($settings)->cta_link ?? route('login') }}" class="inline-flex min-w-[160px] items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:brightness-110 hover:shadow-2xl active:scale-95 sm:w-max sm:px-10" style="background-color: var(--color-button); box-shadow: 0 15px 35px rgba(14, 165, 233, 0.35);">
-                                {{ optional($settings)->cta_label ?? 'Masuk Sistem' }}
+                            @php
+                                $currentGuard = null;
+                                foreach (['admin', 'dosen', 'mahasiswa'] as $guard) {
+                                    if (\Illuminate\Support\Facades\Auth::guard($guard)->check()) {
+                                        $currentGuard = $guard;
+                                        break;
+                                    }
+                                }
+                                $ctaLink = $currentGuard ? route($currentGuard . '.dashboard') : (optional($settings)->cta_link ?? route('login'));
+                                $ctaLabel = $currentGuard ? 'Beranda' : (optional($settings)->cta_label ?? 'Masuk Sistem');
+                            @endphp
+                            <a href="{{ $ctaLink }}" class="inline-flex min-w-[160px] items-center justify-center gap-2 rounded-full px-8 py-4 text-sm font-bold text-white shadow-lg transition-all duration-300 hover:-translate-y-1.5 hover:brightness-110 hover:shadow-2xl active:scale-95 sm:w-max sm:px-10" style="background-color: var(--color-button); box-shadow: 0 15px 35px rgba(14, 165, 233, 0.35);">
+                                {{ $ctaLabel }}
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7m0 0l-7 7m7-7H4" />
                                 </svg>
@@ -750,6 +731,13 @@
                             <button id="scrollSchedule" class="inline-flex min-w-[160px] items-center justify-center rounded-full border-2 border-white/50 px-8 py-4 text-sm font-bold text-white transition-all duration-300 hover:bg-white/10 hover:border-white hover:-translate-y-1.5 hover:shadow-lg active:scale-95 sm:w-max sm:px-10">
                                 Lihat Seminar
                             </button>
+                        </div>
+                        
+                        <div class="mt-8 flex justify-center w-full">
+                            <div class="flex flex-col items-center animate-bounce cursor-pointer z-50 text-white/80 hover:text-white transition group" onclick="document.getElementById('data-section').scrollIntoView({behavior: 'smooth'})">
+                                <span class="text-[10px] uppercase tracking-widest font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity">Scroll</span>
+                                <i class="fas fa-chevron-down text-2xl drop-shadow-md"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -759,7 +747,7 @@
 
 
 
-    <main class="mx-auto max-w-screen-2xl 2xl:max-w-screen-3xl px-4 py-10 sm:px-6 sm:py-12">
+    <main id="data-section" class="mx-auto max-w-screen-2xl 2xl:max-w-screen-3xl px-4 py-10 sm:px-6 sm:py-12">
         <div class="{{ $contentShellClass }}" @if($contentShellStyle) style="{{ $contentShellStyle }}" @endif>
             <div class="content-shell-inner space-y-12">
                 <section class="stats-grid grid grid-cols-2 gap-4 md:grid-cols-4 sm:gap-6 fade-section">
@@ -773,6 +761,20 @@
                             </div>
                         </article>
                     @endforeach
+                </section>
+
+                <section class="fade-section space-y-6">
+                    <x-grafik-progres-skripsi :chart-data="$chartData" />
+
+                    <x-lulus-tepat-waktu-section 
+                        :tepat-waktu-count="$tepatWaktuCount"
+                        :tidak-tepat-waktu-count="$tidakTepatWaktuCount"
+                        :ongoing-tepat-waktu-count="$ongoingTepatWaktuCount"
+                        :ongoing-overdue-count="$ongoingOverdueCount"
+                        :students-paginated="$studentsPaginated"
+                        :search-mhs="$searchMhs"
+                        update-route-prefix="landing"
+                    />
                 </section>
 
                 <section id="schedule" class="fade-section">
