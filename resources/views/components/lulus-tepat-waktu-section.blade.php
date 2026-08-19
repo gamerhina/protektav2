@@ -242,15 +242,6 @@
                                     <div class="font-semibold text-slate-700">
                                         {{ $endDate ? $endDate->translatedFormat('d F Y') : 'Belum Ditentukan' }}
                                     </div>
-                                    <div class="text-[9px]">
-                                        @if($student->tanggal_lulus_manual)
-                                            <span class="text-indigo-500 font-medium">Input Manual</span>
-                                        @elseif($hasCompletedSkripsi)
-                                            <span class="text-emerald-500 font-medium">Ujian Skripsi</span>
-                                        @else
-                                            <span class="text-amber-500 font-medium">Belum Lulus</span>
-                                        @endif
-                                    </div>
                                 </td>
                                 <td class="px-4 py-3 whitespace-nowrap">
                                     @if($startDate)
