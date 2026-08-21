@@ -19,9 +19,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Bind public path to base path only on production (needed for shared hosting root index.php)
         if (!$this->app->isLocal()) {
-            $this->app->bind('path.public', function() {
-                return base_path();
-            });
+            $this->app->usePublicPath(base_path());
         }
     }
 
