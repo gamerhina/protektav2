@@ -18,7 +18,11 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Bind public path to base path only on production (needed for shared hosting root index.php)
-        if (!$this->app->isLocal()) {
+        // We also check HTTP_HOST in case APP_ENV is still set to 'local' on the server.
+        $isProduction = !$this->app->isLocal() || 
+                        (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'proteksitanamanunila.site'));
+                        
+        if ($isProduction) {
             $this->app->usePublicPath(base_path());
         }
     }
